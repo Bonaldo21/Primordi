@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: primordi-api
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/primordi?useSSL=false&serverTimezone=America/Sao_Paulo&useUnicode=true&characterEncoding=utf8
+    username: root
+    password: Caualindao2703.
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+
+primordi:
+  jwt:
+    secret: troque-essa-chave-secreta-com-no-minimo-32-caracteres-bem-aleatorios
+    expiration-ms: 86400000
+  cors:
+    allowed-origins: http://localhost:3000
+
+  mercado-pago:
+    access-token: ${MP_ACCESS_TOKEN:SEU_TOKEN_AQUI}
+
+# Logs
+logging:
+  level:
+    com.primordi.api: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.springframework.security: INFO
+
+# Swagger
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+  api-docs:
+    path: /v3/api-docs
