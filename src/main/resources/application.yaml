@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/primordi?useSSL=false&serverTimezone=America/Sao_Paulo&useUnicode=true&characterEncoding=utf8
     username: root
-    password: Caualindao2703.
+    password: ${DB_PASSWORD:Caualindao2703.}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -32,7 +32,7 @@ server:
 
 primordi:
   cors:
-    allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000}
+    allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173,http://localhost:4200}
   jwt:
     secret: ${JWT_SECRET:troque-essa-chave-secreta-em-producao-com-pelo-menos-256-bits-seguros-aqui}
     expiration-ms: 3600000           # 1 hora

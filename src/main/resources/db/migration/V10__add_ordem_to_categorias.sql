@@ -1,0 +1,2 @@
+ALTER TABLE categorias
+    ADD COLUMN ordem INT NOT NULL DEFAULT 0;
