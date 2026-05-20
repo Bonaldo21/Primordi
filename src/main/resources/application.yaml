@@ -21,6 +21,7 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
+    repair-on-migrate: true
     locations: classpath:db/migration
 
 server:
@@ -30,11 +31,13 @@ server:
 
 
 primordi:
-  jwt:
-    secret: troque-essa-chave-secreta-com-no-minimo-32-caracteres-bem-aleatorios
-    expiration-ms: 86400000
   cors:
-    allowed-origins: http://localhost:3000
+    allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000}
+  jwt:
+    secret: ${JWT_SECRET:troque-essa-chave-secreta-em-producao-com-pelo-menos-256-bits-seguros-aqui}
+    expiration-ms: 3600000           # 1 hora
+    refresh-expiration-ms: 604800000 # 7 dias
+
 
   mercado-pago:
     access-token: ${MP_ACCESS_TOKEN:SEU_TOKEN_AQUI}

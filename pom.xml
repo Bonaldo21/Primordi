@@ -22,7 +22,8 @@
         <java.version>17</java.version>
         <jjwt.version>0.12.6</jjwt.version>
         <mercadopago.version>2.9.2</mercadopago.version>
-        <springdoc.version>2.6.0</springdoc.version>
+        <springdoc.version>2.8.15</springdoc.version>
+
     </properties>
 
     <dependencies>
