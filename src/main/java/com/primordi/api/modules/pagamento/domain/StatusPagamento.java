@@ -12,7 +12,8 @@ public enum StatusPagamento {
     REJEITADO("rejected", "Pagamento rejeitado"),
     CANCELADO("cancelled", "Pagamento cancelado"),
     REEMBOLSADO("refunded", "Pagamento reembolsado"),
-    ESTORNADO("charged_back", "Pagamento estornado");
+    ESTORNADO("charged_back", "Pagamento estornado"),
+    EXPIRADO("expired", "Pagamento expirado");
 
     private final String statusMercadoPago;
     private final String descricao;
