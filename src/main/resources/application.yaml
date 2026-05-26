@@ -56,3 +56,16 @@ springdoc:
     operations-sorter: method
   api-docs:
     path: /v3/api-docs
+
+# ===========================================
+# Mercado Pago
+# ===========================================
+mercadopago:
+  access-token: ${MP_ACCESS_TOKEN:TEST-0000000000000000-000000-00000000000000000000000000000000-000000000}
+  public-key: ${MP_PUBLIC_KEY:TEST-00000000-0000-0000-0000-000000000000}
+  webhook-secret: ${MP_WEBHOOK_SECRET:}
+  notification-url: ${MP_NOTIFICATION_URL:http://localhost:8080/api/pagamentos/webhook}
+  success-url: ${APP_FRONT_URL:http://localhost:3000}/pagamento/sucesso
+  failure-url: ${APP_FRONT_URL:http://localhost:3000}/pagamento/falha
+  pending-url: ${APP_FRONT_URL:http://localhost:3000}/pagamento/pendente
+  sandbox: ${MP_SANDBOX:true}
