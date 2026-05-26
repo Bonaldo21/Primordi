@@ -69,3 +69,24 @@ mercadopago:
   failure-url: ${APP_FRONT_URL:http://localhost:3000}/pagamento/falha
   pending-url: ${APP_FRONT_URL:http://localhost:3000}/pagamento/pendente
   sandbox: ${MP_SANDBOX:true}
+
+
+
+frete:
+  fixo:
+    habilitado: true
+    valor-base: 25.00
+    valor-por-kg: 5.00
+    prazo-dias: 7
+
+  correios:
+    habilitado: false
+    contrato: ${CORREIOS_CONTRATO:}
+    senha: ${CORREIOS_SENHA:}
+    cep-origem: ${CORREIOS_CEP_ORIGEM:01310100}
+    api-url: https://api.correios.com.br
+
+  melhor-envio:
+    habilitado: false
+    token: ${MELHOR_ENVIO_TOKEN:}
+    sandbox: true
