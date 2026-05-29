@@ -32,6 +32,8 @@ public class CorsConfig {
         // Headers expostos ao frontend (úteis pra paginação, etc)
         config.setExposedHeaders(List.of("Authorization", "Content-Disposition"));
 
+        config.addAllowedOrigin("http://localhost:5173");
+
         // Permite envio de credenciais (cookies/Authorization header)
         config.setAllowCredentials(true);
 

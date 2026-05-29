@@ -93,6 +93,13 @@ public class ProdutoController {
         return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/{id}/definitivo")
+    @Operation(summary = "Remove produto do banco permanentemente (cuidado!)")
+    public ResponseEntity<Void> deletarDefinitivo(@PathVariable Long id) {
+        service.deletarDefinitivo(id);
+        return ResponseEntity.noContent().build();
+    }
+
     // ========== ESTOQUE ==========
 
     @PatchMapping("/{id}/estoque")

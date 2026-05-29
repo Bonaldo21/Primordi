@@ -155,6 +155,11 @@ public class ProdutoService {
         produtoRepository.save(produto);
     }
 
+    public void deletarDefinitivo(Long id) {
+        Produto produto = buscarEntidade(id);
+        produtoRepository.delete(produto);
+    }
+
     // ========== ESTOQUE ==========
 
     public ProdutoResponse atualizarEstoque(Long produtoId, Integer novoEstoque) {

@@ -44,11 +44,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/produtos/vitrine", "/produtos/destaques").permitAll()
                         .requestMatchers(HttpMethod.GET, "/produtos/slug/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categorias/ativas", "/categorias/slug/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 
                         // ===== ADMIN-ONLY =====
                         .requestMatchers(HttpMethod.POST, "/categorias/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/categorias/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/categorias/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/arquivos/**").hasRole("ADMIN")
 
                         .requestMatchers(HttpMethod.POST, "/produtos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/produtos/**").hasRole("ADMIN")
