@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.primordi.api.shared.exception.ResourceNotFoundException;
 
 import java.math.BigDecimal;
 import java.time.Year;
@@ -161,6 +162,19 @@ public class PedidoService {
 
         pedido.setStatus(novoStatus);
         return mapper.toResponse(repository.save(pedido));
+    }
+
+    public PedidoResponse buscarPorIdAdmin(Long id) {
+        Pedido pedido = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido", id));
+        return mapper.toResponse(pedido);
+    }
+
+    public Page<PedidoResponse> listarTodos(StatusPedido status, Pageable pageable) {
+        if (status != null) {
+            return repository.findByStatus(status, pageable).map(mapper::toResponse);
+        }
+        return repository.findAll(pageable).map(mapper::toResponse);
     }
 
     // ========== GERAÇÃO DE CÓDIGO ==========

@@ -17,7 +17,7 @@ import java.net.URI;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/pedidos")
+@RequestMapping("/pedidos")
 @RequiredArgsConstructor
 public class PedidoController {
 

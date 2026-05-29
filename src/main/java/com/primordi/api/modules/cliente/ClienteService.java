@@ -8,6 +8,8 @@ import com.primordi.api.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -19,11 +21,23 @@ public class ClienteService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
+    public Page<ClienteResponse> listarTodos(Pageable pageable) {
+        return repository.findAll(pageable).map(ClienteResponse::from);
+    }
+
+    @Transactional(readOnly = true)
     public ClienteResponse buscarPorEmail(String email) {
         return repository.findByEmail(email)
                 .map(ClienteResponse::from)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado"));
     }
+
+    public ClienteResponse buscarPorId(Long id) {
+        Cliente cliente = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente", id));
+        return ClienteResponse.from(cliente);
+    }
+
 
     public ClienteResponse atualizarPerfil(String email, ClienteUpdateRequest request) {
         Cliente cliente = repository.findByEmail(email)
