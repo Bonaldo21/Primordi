@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -14,6 +14,14 @@ import { toast } from 'sonner';
 import type { Endereco, CartItem } from '@/lib/types';
 
 type MetodoPagamento = 'PIX' | 'CARTAO_CREDITO' | 'BOLETO';
+
+const formatarCpf = (valor: string) => {
+    const nums = valor.replace(/\D/g, '').slice(0, 11);
+    return nums
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+};
 
 export default function CheckoutPage() {
     const router = useRouter();
@@ -29,35 +37,43 @@ export default function CheckoutPage() {
     const [publicKey, setPublicKey] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [mpReady, setMpReady] = useState(false);
+    // CPF digitado no checkout (usado quando user.cpf é nulo)
+    const [cpfInput, setCpfInput] = useState('');
+
+    const criandoPedido = useRef(false);
+
+    // CPF resolvido: prefere o do perfil, senão usa o digitado no checkout
+    const cpfResolvido = (user?.cpf ?? '').replace(/\D/g, '') || cpfInput.replace(/\D/g, '');
+    // Usuário não tem CPF no perfil → precisa digitar
+    const precisaDigitarCpf = !(user?.cpf ?? '').replace(/\D/g, '');
 
     useEffect(() => {
         if (!user) return;
 
-        // ✅ CORREÇÃO: tratamento robusto da resposta da API
-        enderecosApi.listar().then((res) => {
-            const data = res?.data ?? res;
-            const lista = Array.isArray(data) ? data : (data?.content ?? []);
-            setEnderecos(lista);
-
-            const principal = lista.find((e: any) => e?.principal);
+        enderecosApi.listar().then((lista: Endereco[]) => {
+            const itens = Array.isArray(lista) ? lista : [];
+            setEnderecos(itens);
+            const principal = itens.find((e) => e?.principal);
             if (principal) {
                 setEnderecoId(principal.id);
-            } else if (lista.length > 0) {
-                setEnderecoId(lista[0]?.id);
+            } else if (itens.length > 0) {
+                setEnderecoId(itens[0].id);
             }
         }).catch((err) => {
             console.error('Erro ao carregar endereços:', err);
             toast.error('Erro ao carregar endereços.');
         });
 
-        pagamentosApi.publicKey().then((res) => {
+        pagamentosApi.publicKey().then((res: any) => {
             const key = res?.publicKey ?? '';
             setPublicKey(key);
             if (key && key !== 'TEST-00000000-0000-0000-0000-000000000000') {
                 initMercadoPago(key, { locale: 'pt-BR' });
                 setMpReady(true);
             }
-        }).catch(() => {});
+        }).catch((err) => {
+            console.warn('Erro ao obter public key do Mercado Pago:', err);
+        });
     }, [user]);
 
     if (!user) return (
@@ -74,7 +90,6 @@ export default function CheckoutPage() {
         </div>
     );
 
-    // ── STEP 1: Endereço ──
     const handleConfirmarEndereco = () => {
         if (!enderecoId) {
             toast.error('Selecione um endereço de entrega');
@@ -83,12 +98,24 @@ export default function CheckoutPage() {
         setStep(2);
     };
 
-    // ── STEP 2: Criar pedido + pagamento ──
+    const handleMetodoChange = (m: MetodoPagamento) => {
+        setMetodo(m);
+        setPedidoId(null);
+    };
+
     const handlePagar = async (cardFormData?: any) => {
         if (!enderecoId) return;
+
+        // Valida CPF antes de qualquer requisição
+        if (precisaDigitarCpf && cpfResolvido.length !== 11) {
+            toast.error('Digite um CPF válido com 11 dígitos');
+            return;
+        }
+
+        if (criandoPedido.current) return;
+        criandoPedido.current = true;
         setSubmitting(true);
         try {
-            // 1. Cria o pedido
             let pid = pedidoId;
             if (!pid) {
                 const pedido = await pedidosApi.create({
@@ -104,13 +131,12 @@ export default function CheckoutPage() {
 
             if (!pid) throw new Error('Erro ao criar pedido');
 
-            // 2. Cria o pagamento
             const payload: any = {
                 pedidoId: pid,
                 metodo,
-                pagadorEmail: (user as any)?.email ?? '',
-                pagadorNome: (user as any)?.nome ?? '',
-                pagadorCpf: ((user as any)?.cpf ?? '').replace(/\D/g, ''),
+                pagadorEmail: user.email ?? '',
+                pagadorNome: user.nome ?? '',
+                pagadorCpf: cpfResolvido,
             };
 
             if (metodo === 'CARTAO_CREDITO' && cardFormData) {
@@ -121,19 +147,16 @@ export default function CheckoutPage() {
 
             const pag = await pagamentosApi.criar(payload);
             setPagamento(pag);
+            clearCart();
             setStep(3);
-
-            if (pag?.status === 'APROVADO') {
-                clearCart();
-            }
         } catch (err: any) {
             toast.error(err?.message ?? 'Erro ao processar pagamento');
         } finally {
             setSubmitting(false);
+            criandoPedido.current = false;
         }
     };
 
-    // ── STEP 3: Resultado ──
     if (step === 3 && pagamento) {
         const aprovado = pagamento?.status === 'APROVADO';
         const isPix = pagamento?.metodo === 'PIX';
@@ -204,7 +227,6 @@ export default function CheckoutPage() {
             </Link>
             <h1 className="font-display text-3xl font-semibold tracking-tight mb-8">Checkout</h1>
 
-            {/* Steps */}
             <div className="flex gap-6 mb-10">
                 {[{ n: 1, label: 'Endereço' }, { n: 2, label: 'Pagamento' }].map((s) => (
                     <div key={s.n} className={`flex items-center gap-2 text-sm ${step >= s.n ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
@@ -217,20 +239,19 @@ export default function CheckoutPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
 
-                    {/* STEP 1 */}
                     {step === 1 && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
                             <h2 className="font-medium text-lg flex items-center gap-2"><MapPin className="w-5 h-5 text-primary" /> Endereço de Entrega</h2>
                             {enderecos.length > 0 ? (
                                 <div className="space-y-3">
-                                    {enderecos.map((e: any) => (
-                                        <label key={e?.id} className={`flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${enderecoId === e?.id ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}`}>
-                                            <input type="radio" name="endereco" value={e?.id} checked={enderecoId === e?.id} onChange={() => setEnderecoId(e?.id)} className="mt-1" />
+                                    {enderecos.map((e) => (
+                                        <label key={e.id} className={`flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${enderecoId === e.id ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}`}>
+                                            <input type="radio" name="endereco" value={e.id} checked={enderecoId === e.id} onChange={() => setEnderecoId(e.id)} className="mt-1" />
                                             <div className="text-sm">
-                                                <p className="font-medium">{e?.logradouro}, {e?.numero} {e?.complemento}</p>
-                                                <p className="text-muted-foreground">{e?.bairro} — {e?.cidade}/{e?.estado}</p>
-                                                <p className="text-muted-foreground">CEP: {e?.cep}</p>
-                                                {e?.principal && <span className="text-xs text-primary font-medium">Principal</span>}
+                                                <p className="font-medium">{e.logradouro}, {e.numero} {e.complemento}</p>
+                                                <p className="text-muted-foreground">{e.bairro} — {e.cidade}/{e.estado}</p>
+                                                <p className="text-muted-foreground">CEP: {e.cep}</p>
+                                                {e.principal && <span className="text-xs text-primary font-medium">Principal</span>}
                                             </div>
                                         </label>
                                     ))}
@@ -249,19 +270,17 @@ export default function CheckoutPage() {
                         </motion.div>
                     )}
 
-                    {/* STEP 2 */}
                     {step === 2 && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                             <h2 className="font-medium text-lg flex items-center gap-2"><CreditCard className="w-5 h-5 text-primary" /> Forma de Pagamento</h2>
 
-                            {/* Seletor de método */}
                             <div className="grid grid-cols-3 gap-3">
                                 {([
                                     { id: 'PIX', label: 'PIX', icon: QrCode },
                                     { id: 'CARTAO_CREDITO', label: 'Cartão', icon: CreditCard },
                                     { id: 'BOLETO', label: 'Boleto', icon: FileText },
                                 ] as const).map((m) => (
-                                    <button key={m.id} onClick={() => setMetodo(m.id)}
+                                    <button key={m.id} onClick={() => handleMetodoChange(m.id)}
                                             className={`flex flex-col items-center gap-1 p-3 rounded-lg border text-sm transition-colors ${metodo === m.id ? 'border-primary bg-primary/5 text-primary font-medium' : 'border-border hover:border-primary/50'}`}>
                                         <m.icon className="w-5 h-5" />
                                         {m.label}
@@ -269,7 +288,22 @@ export default function CheckoutPage() {
                                 ))}
                             </div>
 
-                            {/* PIX */}
+                            {/* Campo CPF — aparece apenas quando o usuário não tem CPF no perfil */}
+                            {precisaDigitarCpf && (
+                                <div>
+                                    <label className="text-sm font-medium mb-1.5 block">CPF do pagador</label>
+                                    <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        placeholder="000.000.000-00"
+                                        value={cpfInput}
+                                        onChange={(e) => setCpfInput(formatarCpf(e.target.value))}
+                                        className="w-full border border-border rounded-lg px-3 py-2.5 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+                                    />
+                                    <p className="text-xs text-muted-foreground mt-1">Obrigatório pelo Mercado Pago. Você pode salvá-lo no seu <Link href="/conta" className="text-primary hover:underline">perfil</Link> para não precisar digitar sempre.</p>
+                                </div>
+                            )}
+
                             {metodo === 'PIX' && (
                                 <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 text-sm text-blue-800 dark:text-blue-300">
                                     <p className="font-medium mb-1">Como funciona o PIX?</p>
@@ -277,12 +311,11 @@ export default function CheckoutPage() {
                                 </div>
                             )}
 
-                            {/* CARTÃO */}
                             {metodo === 'CARTAO_CREDITO' && (
                                 <div>
                                     {mpReady ? (
                                         <CardPayment
-                                            initialization={{ amount: subtotal }}
+                                            initialization={{ amount: subtotal ?? 0 }}
                                             onSubmit={async (formData) => { await handlePagar(formData); }}
                                             onError={(err) => { toast.error('Erro no cartão: ' + err?.message); }}
                                             customization={{ paymentMethods: { minInstallments: 1, maxInstallments: 12 } }}
@@ -295,7 +328,6 @@ export default function CheckoutPage() {
                                 </div>
                             )}
 
-                            {/* BOLETO */}
                             {metodo === 'BOLETO' && (
                                 <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-sm text-yellow-800 dark:text-yellow-300">
                                     <p className="font-medium mb-1">Boleto Bancário</p>
@@ -303,7 +335,6 @@ export default function CheckoutPage() {
                                 </div>
                             )}
 
-                            {/* Botões de ação (PIX e Boleto) */}
                             {metodo !== 'CARTAO_CREDITO' && (
                                 <div className="flex gap-3">
                                     <button onClick={() => setStep(1)} className="flex-1 bg-secondary text-secondary-foreground py-3 text-sm font-medium rounded hover:bg-accent transition-colors">Voltar</button>
@@ -320,7 +351,6 @@ export default function CheckoutPage() {
                     )}
                 </div>
 
-                {/* Resumo lateral */}
                 <div className="lg:col-span-1">
                     <div className="bg-card rounded-lg p-5 sticky top-24" style={{ boxShadow: 'var(--shadow-sm)' }}>
                         <h3 className="font-medium mb-4">Resumo</h3>

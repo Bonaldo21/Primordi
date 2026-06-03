@@ -1,21 +1,16 @@
 package com.primordi.api.modules.pagamento;
 
+import com.mercadopago.client.common.IdentificationRequest;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.payment.PaymentCreateRequest;
 import com.mercadopago.client.payment.PaymentPayerRequest;
-import com.mercadopago.client.preference.PreferenceClient;
-import com.mercadopago.client.preference.PreferenceItemRequest;
-import com.mercadopago.client.preference.PreferenceRequest;
-import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
-import com.mercadopago.resources.preference.Preference;
 import com.primordi.api.modules.pagamento.config.MercadoPagoProperties;
 import com.primordi.api.modules.pagamento.domain.MetodoPagamento;
 import com.primordi.api.modules.pagamento.domain.Pagamento;
 import com.primordi.api.modules.pagamento.domain.StatusPagamento;
-import com.primordi.api.modules.pagamento.domain.TipoPagamento;
 import com.primordi.api.modules.pagamento.dto.CriarPagamentoRequest;
 import com.primordi.api.modules.pagamento.dto.PagamentoResponse;
 import com.primordi.api.modules.pagamento.dto.WebhookMercadoPagoRequest;
@@ -29,9 +24,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -78,8 +70,12 @@ public class PagamentoService {
                             .email(dto.getPagadorEmail())
                             .firstName(primeiroNome(dto.getPagadorNome()))
                             .lastName(ultimoNome(dto.getPagadorNome()))
+                            .identification(IdentificationRequest.builder()
+                                    .type("CPF")
+                                    .number(dto.getPagadorCpf())
+                                    .build())
                             .build())
-                    .notificationUrl(mpProperties.getNotificationUrl())
+                    .notificationUrl(notificationUrlValida())
                     .build();
 
             Payment payment = client.create(request);
@@ -98,7 +94,10 @@ public class PagamentoService {
 
             return PagamentoResponse.fromEntity(pagamentoRepository.save(pagamento));
 
-        } catch (MPException | MPApiException e) {
+        } catch (MPApiException e) {
+            log.error("Erro MP ao criar PIX: status={} body={}", e.getStatusCode(), e.getApiResponse().getContent());
+            throw new BusinessException("Erro ao processar PIX: " + e.getMessage());
+        } catch (MPException e) {
             log.error("Erro ao criar PIX: {}", e.getMessage());
             throw new BusinessException("Erro ao processar PIX: " + e.getMessage());
         }
@@ -124,7 +123,7 @@ public class PagamentoService {
                     .payer(PaymentPayerRequest.builder()
                             .email(dto.getPagadorEmail())
                             .build())
-                    .notificationUrl(mpProperties.getNotificationUrl())
+                    .notificationUrl(notificationUrlValida())
                     .build();
 
             Payment payment = client.create(request);
@@ -147,7 +146,10 @@ public class PagamentoService {
 
             return PagamentoResponse.fromEntity(salvo);
 
-        } catch (MPException | MPApiException e) {
+        } catch (MPApiException e) {
+            log.error("Erro MP ao criar cartão: status={} body={}", e.getStatusCode(), e.getApiResponse().getContent());
+            throw new BusinessException("Erro ao processar cartão: " + e.getMessage());
+        } catch (MPException e) {
             log.error("Erro ao criar pagamento cartão: {}", e.getMessage());
             throw new BusinessException("Erro ao processar cartão: " + e.getMessage());
         }
@@ -169,8 +171,12 @@ public class PagamentoService {
                             .email(dto.getPagadorEmail())
                             .firstName(primeiroNome(dto.getPagadorNome()))
                             .lastName(ultimoNome(dto.getPagadorNome()))
+                            .identification(IdentificationRequest.builder()
+                                    .type("CPF")
+                                    .number(dto.getPagadorCpf())
+                                    .build())
                             .build())
-                    .notificationUrl(mpProperties.getNotificationUrl())
+                    .notificationUrl(notificationUrlValida())
                     .build();
 
             Payment payment = client.create(request);
@@ -187,7 +193,10 @@ public class PagamentoService {
 
             return PagamentoResponse.fromEntity(pagamentoRepository.save(pagamento));
 
-        } catch (MPException | MPApiException e) {
+        } catch (MPApiException e) {
+            log.error("Erro MP ao criar boleto: status={} body={}", e.getStatusCode(), e.getApiResponse().getContent());
+            throw new BusinessException("Erro ao processar boleto: " + e.getMessage());
+        } catch (MPException e) {
             log.error("Erro ao criar boleto: {}", e.getMessage());
             throw new BusinessException("Erro ao processar boleto: " + e.getMessage());
         }
@@ -249,6 +258,17 @@ public class PagamentoService {
         pedido.setStatus(StatusPedido.PAGAMENTO_APROVADO);
         pedidoRepository.save(pedido);
         log.info("Pedido {} aprovado após pagamento.", pedido.getCodigo());
+    }
+
+    /**
+     * Retorna a notification URL apenas se for uma URL pública válida.
+     * O Mercado Pago rejeita URLs localhost/127.0.0.1 com erro 400.
+     */
+    private String notificationUrlValida() {
+        String url = mpProperties.getNotificationUrl();
+        if (url == null || url.isBlank()) return null;
+        if (url.contains("localhost") || url.contains("127.0.0.1")) return null;
+        return url;
     }
 
     private String primeiroNome(String nome) {

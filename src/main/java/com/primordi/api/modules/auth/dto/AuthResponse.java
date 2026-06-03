@@ -11,6 +11,7 @@ public record AuthResponse(
             Long id,
             String nome,
             String email,
+            String cpf,      // ← adicionado
             String role
     ) {}
 }

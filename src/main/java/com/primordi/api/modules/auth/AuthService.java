@@ -105,6 +105,7 @@ public class AuthService {
                         cliente.getId(),
                         cliente.getNome(),
                         cliente.getEmail(),
+                        cliente.getCpf(),       // ← adicionado
                         cliente.getRole().name()
                 )
         );
