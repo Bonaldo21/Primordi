@@ -31,3 +31,13 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Next.js
+primordi_frontend/nextjs_space/.next/
+primordi_frontend/nextjs_space/node_modules/
+
+# Uploads locais
+uploads/
+
+# Cache
+primordi_frontend/nextjs_space/.next/cache/
