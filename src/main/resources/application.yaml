@@ -50,12 +50,12 @@ logging:
     org.springframework.security: INFO
 
 # Swagger
+# Adicione ao application.yaml se quiser desabilitar:
 springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-    operations-sorter: method
   api-docs:
-    path: /v3/api-docs
+    enabled: false
+  swagger-ui:
+    enabled: false
 
 # ===========================================
 # Mercado Pago

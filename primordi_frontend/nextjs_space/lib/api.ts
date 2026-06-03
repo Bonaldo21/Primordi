@@ -5,7 +5,7 @@ type UploadImagemResponse = {
   url: string;
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080/api';
+const API_BASE = process.env.REACT_APP_API_BASE_URL ?? 'http://localhost:8080/api';
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
