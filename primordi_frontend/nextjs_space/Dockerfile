@@ -1,22 +1,28 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
+
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
+
 COPY . .
 RUN npm run build
 
+# Verifica se o standalone foi gerado corretamente
+RUN ls -la .next/standalone || (echo "ERRO: .next/standalone não existe!" && exit 1)
+
+# ---
+
 FROM node:20-alpine AS runner
 WORKDIR /app
+
 ENV NODE_ENV=production
+ENV HOSTNAME=0.0.0.0
 
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# ✅ ISSO É O QUE FALTA - definir a porta corretamente
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+# Usa $PORT do Railway se disponível, senão usa 3000
+CMD ["sh", "-c", "PORT=${PORT:-3000} node server.js"]
