@@ -1,28 +1,16 @@
-# Etapa de build
-FROM node:20-alpine AS builder
-
+FROM node:20-alpine AS deps
 WORKDIR /app
 
+FROM node:20-alpine AS builder
+WORKDIR /app
 COPY package*.json ./
-RUN npm install
-
+RUN npm install --legacy-peer-deps
 COPY . .
-
-ARG REACT_APP_API_BASE_URL
-ENV REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
-
 RUN npm run build
 
-# Etapa de produção
-FROM node:20-alpine
-
-WORKDIR /app
-
+FROM node:20-alpine AS stage-1
 RUN npm install -g serve
-
 COPY --from=builder /app/build ./build
 
 EXPOSE 3000
-
-CMD ["serve", "-s", "build", "-l", "3000"]
-
+CMD ["serve", "-s", "build"]
