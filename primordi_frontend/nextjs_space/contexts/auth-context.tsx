@@ -1,68 +1,67 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { Usuario, AuthResponse } from '@/lib/types';
-import { authApi, setTokens, clearTokens } from '@/lib/api';
+// ── Ponte de compatibilidade ───────────────────────────────────────────────────
+// Mantém os 7 arquivos que importam de @/contexts/auth-context funcionando
+// sem nenhuma alteração, delegando tudo ao AuthContext canônico.
+// ─────────────────────────────────────────────────────────────────────────────
 
-interface AuthContextType {
-  user: Usuario | null;
-  loading: boolean;
-  login: (email: string, senha: string) => Promise<void>;
-  register: (data: { nome: string; email: string; senha: string; cpf?: string; telefone?: string }) => Promise<void>;
-  logout: () => void;
-  isAdmin: boolean;
-}
+import { useAuth as _useAuth, AuthProvider } from '@/context/AuthContext';
 
-const AuthContext = createContext<AuthContextType | null>(null);
+export { AuthProvider };
+export type { User } from '@/context/AuthContext';
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<Usuario | null>(null);
-  const [loading, setLoading] = useState(true);
+// Chaves usadas pelo novo AuthContext
+const STORAGE_KEY_ACCESS  = 'primordi:accessToken';
+const STORAGE_KEY_REFRESH = 'primordi:refreshToken';
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('primordi_user');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setUser(parsed ?? null);
-      }
-    } catch {}
-    setLoading(false);
-  }, []);
-
-  const handleAuthResponse = useCallback((res: AuthResponse) => {
-    setTokens(res?.accessToken ?? '', res?.refreshToken ?? '');
-    const u = res?.usuario ?? null;
-    setUser(u);
-    if (u) localStorage.setItem('primordi_user', JSON.stringify(u));
-  }, []);
-
-  const login = useCallback(async (email: string, senha: string) => {
-    const res = await authApi.login(email, senha);
-    handleAuthResponse(res);
-  }, [handleAuthResponse]);
-
-  const register = useCallback(async (data: { nome: string; email: string; senha: string; cpf?: string; telefone?: string }) => {
-    const res = await authApi.register(data);
-    handleAuthResponse(res);
-  }, [handleAuthResponse]);
-
-  const logout = useCallback(() => {
-    clearTokens();
-    setUser(null);
-  }, []);
-
-  const isAdmin = user?.role === 'ADMIN';
-
-  return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, isAdmin }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
-  return ctx;
+  const ctx = _useAuth();
+
+  // isAdmin: derivado de user.role (usado em admin/layout.tsx e header.tsx)
+  const isAdmin = ctx.user?.role === 'ADMIN';
+
+  // register: usado em (auth)/registro/page.tsx
+  const register = async (data: {
+    nome: string;
+    email: string;
+    senha: string;
+    cpf?: string;
+    telefone?: string;
+  }) => {
+    const res = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.message ?? 'Erro ao criar conta');
+    }
+
+    const json = await res.json();
+
+    // Persiste tokens no storage do novo AuthContext
+    if (json?.accessToken && json?.refreshToken) {
+      localStorage.setItem(STORAGE_KEY_ACCESS,  json.accessToken);
+      localStorage.setItem(STORAGE_KEY_REFRESH, json.refreshToken);
+      // Restaura o estado do contexto via refreshAuth
+      await ctx.refreshAuth();
+    }
+
+    return json;
+  };
+
+  // login: delega ao contexto canônico (mesma assinatura login(email, senha))
+  // logout: delega ao contexto canônico
+  // user: direto do contexto canônico
+  // loading: direto do contexto canônico
+
+  return {
+    ...ctx,
+    isAdmin,
+    register,
+  };
 }

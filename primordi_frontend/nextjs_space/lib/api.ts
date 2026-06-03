@@ -9,23 +9,23 @@ const API_BASE = process.env.REACT_APP_API_BASE_URL ?? 'http://localhost:8080/ap
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  try { return localStorage.getItem('primordi_token'); } catch { return null; }
+  try { return localStorage.getItem('primordi:accessToken'); } catch { return null; }
 }
 
 export function setTokens(access: string, refresh: string) {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem('primordi_token', access);
-    localStorage.setItem('primordi_refresh', refresh);
+    localStorage.setItem('primordi:accessToken', access);
+    localStorage.setItem('primordi:refreshToken', refresh);
   } catch {}
 }
 
 export function clearTokens() {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.removeItem('primordi_token');
-    localStorage.removeItem('primordi_refresh');
-    localStorage.removeItem('primordi_user');
+    localStorage.removeItem('primordi:accessToken');
+    localStorage.removeItem('primordi:refreshToken');
+    localStorage.removeItem('primordi:user');
   } catch {}
 }
 
