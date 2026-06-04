@@ -39,8 +39,6 @@ primordi:
     refresh-expiration-ms: 604800000 # 7 dias
 
 
-  mercado-pago:
-    access-token: ${MP_ACCESS_TOKEN:SEU_TOKEN_AQUI}
 
 # Logs
 logging:
