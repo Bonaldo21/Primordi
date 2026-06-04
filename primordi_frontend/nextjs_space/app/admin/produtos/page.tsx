@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Plus, Trash2, Package, X, Pencil } from 'lucide-react';
+import { Plus, Trash2, Package, X, Pencil, ToggleLeft, ToggleRight } from 'lucide-react';
 import { produtosApi, categoriasApi, arquivosApi } from '@/lib/api';
 import { sampleProducts, sampleCategories } from '@/lib/sample-data';
 import { formatCurrency, getProdutoImagem } from '@/lib/format';
@@ -105,6 +105,15 @@ export default function AdminProdutosPage() {
     setShowModal(true);
   };
 
+  const handleToggleAtivo = async (p: Produto) => {
+    const novoAtivo = !(p as any).ativo;
+    try {
+      await produtosApi.update(p.id, { ativo: novoAtivo });
+      setProdutos((prev) => prev.map((item) => item.id === p.id ? { ...item, ativo: novoAtivo } as any : item));
+      toast.success(novoAtivo ? 'Produto ativado' : 'Produto inativado');
+    } catch (err: any) { toast.error(err?.message ?? 'Erro'); }
+  };
+
   const handleDelete = async (id: number) => {
     if (!confirm('Inativar produto?')) return;
     try {
@@ -205,39 +214,52 @@ export default function AdminProdutosPage() {
                   <th className="text-left px-4 py-3 font-medium hidden sm:table-cell">Categoria</th>
                   <th className="text-right px-4 py-3 font-medium">Preço</th>
                   <th className="text-right px-4 py-3 font-medium hidden sm:table-cell">Estoque</th>
+                  <th className="text-center px-4 py-3 font-medium hidden md:table-cell">Status</th>
                   <th className="text-right px-4 py-3 font-medium">Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {produtos.map((p) => (
-                  <tr key={p?.id} className="border-b border-border/50 hover:bg-secondary/20">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="relative w-10 h-10 bg-secondary/30 rounded overflow-hidden flex-shrink-0">
-                          <Image src={getProdutoImagem(p)} alt={p?.nome ?? ''} fill className="object-cover" sizes="40px" />
+                {produtos.map((p) => {
+                  const ativo = (p as any).ativo ?? true;
+                  return (
+                    <tr key={p?.id} className={`border-b border-border/50 hover:bg-secondary/20 ${!ativo ? 'opacity-50' : ''}`}>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="relative w-10 h-10 bg-secondary/30 rounded overflow-hidden flex-shrink-0">
+                            <Image src={getProdutoImagem(p)} alt={p?.nome ?? ''} fill className="object-cover" sizes="40px" />
+                          </div>
+                          <div>
+                            <p className="font-medium line-clamp-1">{p?.nome}</p>
+                            <p className="text-xs text-muted-foreground">{p?.sku}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium line-clamp-1">{p?.nome}</p>
-                          <p className="text-xs text-muted-foreground">{p?.sku}</p>
+                      </td>
+                      <td className="px-4 py-3 hidden sm:table-cell text-muted-foreground">{p?.categoria?.nome ?? '-'}</td>
+                      <td className="px-4 py-3 text-right font-medium">{formatCurrency(p?.precoEfetivo ?? p?.preco)}</td>
+                      <td className="px-4 py-3 text-right hidden sm:table-cell">
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded ${(p?.estoque ?? 0) <= (p?.estoqueMinimo ?? 0) ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                          {p?.estoque ?? 0}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center hidden md:table-cell">
+                        <button
+                          onClick={() => handleToggleAtivo(p)}
+                          title={ativo ? 'Clique para inativar' : 'Clique para ativar'}
+                          className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full transition-colors ${ativo ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
+                        >
+                          {ativo ? <ToggleRight className="w-3.5 h-3.5" /> : <ToggleLeft className="w-3.5 h-3.5" />}
+                          {ativo ? 'Ativo' : 'Inativo'}
+                        </button>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button onClick={() => openEdit(p)} title="Editar" className="p-1 text-muted-foreground hover:text-primary"><Pencil className="w-4 h-4" /></button>
+                          <button onClick={() => handleDeleteDefinitivo(p?.id)} title="Excluir definitivamente" className="p-1 text-muted-foreground hover:text-destructive"><Trash2 className="w-4 h-4" /></button>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 hidden sm:table-cell text-muted-foreground">{p?.categoria?.nome ?? '-'}</td>
-                    <td className="px-4 py-3 text-right font-medium">{formatCurrency(p?.precoEfetivo ?? p?.preco)}</td>
-                    <td className="px-4 py-3 text-right hidden sm:table-cell">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded ${(p?.estoque ?? 0) <= (p?.estoqueMinimo ?? 0) ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-                        {p?.estoque ?? 0}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button onClick={() => openEdit(p)} className="p-1 text-muted-foreground hover:text-primary"><Pencil className="w-4 h-4" /></button>
-                        <button onClick={() => handleDelete(p?.id)} title="Inativar" className="p-1 text-muted-foreground hover:text-yellow-600"><Pencil className="w-3 h-3" /><span className="sr-only">Inativar</span></button>
-                        <button onClick={() => handleDeleteDefinitivo(p?.id)} title="Excluir definitivamente" className="p-1 text-muted-foreground hover:text-destructive"><Trash2 className="w-4 h-4" /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

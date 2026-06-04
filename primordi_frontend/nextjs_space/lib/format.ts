@@ -43,8 +43,32 @@ export function getStatusColor(status: string | null | undefined): string {
   return map[status ?? ''] ?? 'bg-gray-100 text-gray-800';
 }
 
+const API_BASE = (() => {
+  const raw = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://primordi-production.up.railway.app/api')
+    .replace(/\s+/g, '').replace(/\/+$/, '');
+  return raw.startsWith('http') ? raw : `https://${raw}`;
+})();
+
+/**
+ * Corrige URLs de imagem que foram gravadas com host interno do Railway
+ * (ex: http://0.0.0.0:8080/api/uploads/foto.jpg) e as substitui pelo
+ * host público correto extraído de NEXT_PUBLIC_API_BASE_URL.
+ */
+function normalizarUrlImagem(url: string | null | undefined): string | null {
+  if (!url) return null;
+  // Se já é uma URL externa válida (não contém host interno) retorna direto
+  if (url.startsWith('http') && !url.match(/https?:\/\/(0\.0\.0\.0|localhost|127\.|172\.|10\.|192\.168\.)/)) {
+    return url;
+  }
+  // Extrai só o caminho /uploads/arquivo.ext e monta com o host público
+  const match = url.match(/\/uploads\/[^?#]+/);
+  if (match) return `${API_BASE}${match[0]}`;
+  return url;
+}
+
 export function getProdutoImagem(produto: any): string {
   const imgs = produto?.imagens ?? [];
   const principal = imgs.find((i: any) => i?.principal);
-  return principal?.url ?? imgs?.[0]?.url ?? '/placeholder-product.svg';
+  const url = principal?.url ?? imgs?.[0]?.url ?? null;
+  return normalizarUrlImagem(url) ?? '/placeholder-product.svg';
 }
