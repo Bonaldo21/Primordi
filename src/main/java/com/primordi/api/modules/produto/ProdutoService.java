@@ -2,6 +2,9 @@ package com.primordi.api.modules.produto;
 
 import com.primordi.api.modules.categoria.Categoria;
 import com.primordi.api.modules.categoria.CategoriaRepository;
+import com.primordi.api.modules.live.LiveEvent;
+import com.primordi.api.modules.live.LiveEventService;
+import com.primordi.api.modules.live.LiveEventType;
 import com.primordi.api.modules.produto.dto.*;
 import com.primordi.api.shared.exception.BusinessException;
 import com.primordi.api.shared.exception.ResourceNotFoundException;
@@ -13,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +26,7 @@ public class ProdutoService {
     private final ProdutoRepository produtoRepository;
     private final ProdutoImagemRepository imagemRepository;
     private final CategoriaRepository categoriaRepository;
+    private final LiveEventService liveEventService;
 
     // ========== LISTAGEM ==========
 
@@ -167,8 +172,17 @@ public class ProdutoService {
             throw new BusinessException("Estoque não pode ser nulo ou negativo");
         }
         Produto produto = buscarEntidade(produtoId);
+        int estoqueAnterior = produto.getEstoque();
         produto.setEstoque(novoEstoque);
-        return ProdutoResponse.from(produtoRepository.save(produto));
+        ProdutoResponse response = ProdutoResponse.from(produtoRepository.save(produto));
+
+        liveEventService.publicar(LiveEvent.builder()
+                .tipo(LiveEventType.ESTOQUE_ATUALIZADO)
+                .dados(Map.of("produtoId", produtoId, "nome", produto.getNome(),
+                        "estoqueAnterior", estoqueAnterior, "estoqueNovo", novoEstoque))
+                .build());
+
+        return response;
     }
 
     // ========== IMAGENS ==========

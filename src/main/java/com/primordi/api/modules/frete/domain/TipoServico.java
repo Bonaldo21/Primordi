@@ -7,7 +7,8 @@ public enum TipoServico {
     SEDEX_HOJE("40290", "SEDEX Hoje"),
     EXPRESSO("EXP", "Expresso"),
     ECONOMICO("ECO", "Econômico"),
-    RETIRADA("RET", "Retirada");
+    RETIRADA("RET", "Retirada"),
+    AGENDADO("AGE", "Agendado");
 
     private final String codigo;
     private final String descricao;

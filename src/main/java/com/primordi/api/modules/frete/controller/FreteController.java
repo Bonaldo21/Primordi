@@ -5,6 +5,7 @@ import com.primordi.api.modules.frete.domain.Transportadora;
 import com.primordi.api.modules.frete.dto.*;
 import com.primordi.api.modules.frete.service.FreteCalculadoraService;
 import com.primordi.api.modules.frete.service.FreteService;
+import com.primordi.api.modules.frete.service.FreteSimuladorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,16 @@ public class FreteController {
 
     private final FreteService freteService;
     private final FreteCalculadoraService calculadoraService;
+    private final FreteSimuladorService simuladorService;
+
+    /**
+     * Simula frete publicamente (sem autenticação).
+     * Consulta ViaCEP para obter cidade/estado e aplica fator regional.
+     */
+    @PostMapping("/simular")
+    public ResponseEntity<SimulacaoFreteResponse> simular(@Valid @RequestBody SimularFreteRequest request) {
+        return ResponseEntity.ok(simuladorService.simular(request));
+    }
 
     /** Calcula opções de frete em todas as transportadoras */
     @PostMapping("/calcular")

@@ -3,6 +3,9 @@ package com.primordi.api.modules.pedido;
 import com.primordi.api.modules.cliente.Cliente;
 import com.primordi.api.modules.endereco.Endereco;
 import com.primordi.api.modules.endereco.EnderecoService;
+import com.primordi.api.modules.live.LiveEvent;
+import com.primordi.api.modules.live.LiveEventService;
+import com.primordi.api.modules.live.LiveEventType;
 import com.primordi.api.modules.pedido.dto.PedidoItemRequest;
 import com.primordi.api.modules.pedido.dto.PedidoRequest;
 import com.primordi.api.modules.pedido.dto.PedidoResponse;
@@ -17,6 +20,7 @@ import com.primordi.api.shared.exception.ResourceNotFoundException;
 
 import java.math.BigDecimal;
 import java.time.Year;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +30,7 @@ public class PedidoService {
     private final PedidoMapper mapper;
     private final ProdutoRepository produtoRepository;
     private final EnderecoService enderecoService;
+    private final LiveEventService liveEventService;
 
     // ========== LISTAGEM ==========
 
@@ -126,6 +131,12 @@ public class PedidoService {
         // 7️⃣ Salva (cascata salva os itens junto)
         Pedido salvo = repository.save(pedido);
 
+        liveEventService.publicar(LiveEvent.builder()
+                .tipo(LiveEventType.PEDIDO_CRIADO)
+                .dados(Map.of("pedidoId", salvo.getId(), "codigo", salvo.getCodigo(),
+                        "total", salvo.getTotal(), "cliente", cliente.getNome()))
+                .build());
+
         return mapper.toResponse(salvo);
     }
 
@@ -161,7 +172,14 @@ public class PedidoService {
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
 
         pedido.setStatus(novoStatus);
-        return mapper.toResponse(repository.save(pedido));
+        PedidoResponse response = mapper.toResponse(repository.save(pedido));
+
+        liveEventService.publicar(LiveEvent.builder()
+                .tipo(LiveEventType.PEDIDO_STATUS_ATUALIZADO)
+                .dados(Map.of("pedidoId", id, "novoStatus", novoStatus.name()))
+                .build());
+
+        return response;
     }
 
     public PedidoResponse buscarPorIdAdmin(Long id) {

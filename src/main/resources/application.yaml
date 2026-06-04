@@ -88,3 +88,11 @@ frete:
     habilitado: false
     token: ${MELHOR_ENVIO_TOKEN:}
     sandbox: true
+
+# ===========================================
+# Social Login
+# ===========================================
+social:
+  google:
+    # Valide o aud em produção configurando a env var GOOGLE_CLIENT_ID
+    client-id: ${GOOGLE_CLIENT_ID:}

@@ -49,6 +49,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/categorias/ativas", "/categorias/slug/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 
+                        // Simulação de frete pública (não exige login)
+                        .requestMatchers(HttpMethod.POST, "/fretes/simular").permitAll()
+
+                        // Tela Live — SSE público para admin/clientes autenticados
+                        .requestMatchers(HttpMethod.GET, "/live/status").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/live/eventos").authenticated()
+
                         // ===== ADMIN-ONLY =====
                         .requestMatchers(HttpMethod.POST, "/categorias/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/categorias/**").hasRole("ADMIN")
