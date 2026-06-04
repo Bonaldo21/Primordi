@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowLeft, MapPin, CreditCard, Check, QrCode, FileText, Truck } from 'lucide-react';
+import { ArrowLeft, MapPin, CreditCard, Check, QrCode, FileText, Truck, Store } from 'lucide-react';
 import { initMercadoPago, CardPayment } from '@mercadopago/sdk-react';
 import { useCart } from '@/contexts/cart-context';
 import { useAuth } from '@/contexts/auth-context';
@@ -42,13 +42,14 @@ export default function CheckoutPage() {
     const [opcoesFretes, setOpcoesFretes] = useState<FreteOpcao[]>([]);
     const [freteSelecionado, setFreteSelecionado] = useState<FreteOpcao | null>(null);
     const [calculandoFrete, setCalculandoFrete] = useState(false);
+    const [modoEntrega, setModoEntrega] = useState<'entrega' | 'retirada'>('entrega');
 
     const criandoPedido = useRef(false);
 
     const cpfResolvido = (user?.cpf ?? '').replace(/\D/g, '') || cpfInput.replace(/\D/g, '');
     const precisaDigitarCpf = !(user?.cpf ?? '').replace(/\D/g, '');
 
-    const totalComFrete = (subtotal ?? 0) + (freteSelecionado?.valor ?? 0);
+    const totalComFrete = (subtotal ?? 0) + (modoEntrega === 'entrega' ? (freteSelecionado?.valor ?? 0) : 0);
 
     useEffect(() => {
         if (!user) return;
@@ -94,6 +95,11 @@ export default function CheckoutPage() {
     );
 
     const handleConfirmarEndereco = async () => {
+        if (modoEntrega === 'retirada') {
+            setStep(2);
+            return;
+        }
+
         if (!enderecoId) {
             toast.error('Selecione um endereço de entrega');
             return;
@@ -135,7 +141,7 @@ export default function CheckoutPage() {
     };
 
     const handlePagar = async (cardFormData?: any) => {
-        if (!enderecoId) return;
+        if (modoEntrega === 'entrega' && !enderecoId) return;
 
         if (precisaDigitarCpf && cpfResolvido.length !== 11) {
             toast.error('Digite um CPF válido com 11 dígitos');
@@ -149,11 +155,13 @@ export default function CheckoutPage() {
             let pid = pedidoId;
             if (!pid) {
                 const pedido = await pedidosApi.create({
-                    enderecoEntregaId: enderecoId,
+                    enderecoEntregaId: modoEntrega === 'entrega' ? enderecoId : undefined,
+                    retiradaNaLoja: modoEntrega === 'retirada',
                     itens: (items ?? []).map((i: CartItem) => ({
                         produtoId: i.produto.id,
                         quantidade: i.quantidade
                     })),
+                    valorFrete: modoEntrega === 'entrega' && freteSelecionado ? freteSelecionado.valor : 0,
                 });
                 pid = pedido?.id;
                 setPedidoId(pid ?? null);
@@ -271,6 +279,26 @@ export default function CheckoutPage() {
 
                     {step === 1 && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+
+                            {/* Seleção: Entrega ou Retirada */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <button onClick={() => setModoEntrega('entrega')}
+                                        className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-colors ${modoEntrega === 'entrega' ? 'border-primary bg-primary/5 text-primary' : 'border-border hover:border-primary/50'}`}>
+                                    <Truck className="w-4 h-4" /> Receber em casa
+                                </button>
+                                <button onClick={() => setModoEntrega('retirada')}
+                                        className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-colors ${modoEntrega === 'retirada' ? 'border-primary bg-primary/5 text-primary' : 'border-border hover:border-primary/50'}`}>
+                                    <Store className="w-4 h-4" /> Retirar na loja
+                                </button>
+                            </div>
+
+                            {modoEntrega === 'retirada' ? (
+                                <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4 text-sm text-green-800 dark:text-green-300 space-y-1">
+                                    <p className="font-medium flex items-center gap-2"><Store className="w-4 h-4" /> Retirada na Loja — Grátis</p>
+                                    <p className="text-muted-foreground">Você retira o pedido diretamente em nossa loja. Entraremos em contato para combinar o horário após a confirmação do pagamento.</p>
+                                </div>
+                            ) : (
+                                <>
                             <h2 className="font-medium text-lg flex items-center gap-2"><MapPin className="w-5 h-5 text-primary" /> Endereço de Entrega</h2>
                             {enderecos.length > 0 ? (
                                 <div className="space-y-3">
@@ -293,7 +321,9 @@ export default function CheckoutPage() {
                                     <Link href="/conta/enderecos" className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 text-sm font-medium rounded hover:opacity-90">Cadastrar Endereço</Link>
                                 </div>
                             )}
-                            <button onClick={handleConfirmarEndereco} disabled={!enderecoId || calculandoFrete}
+                                </>
+                            )}
+                            <button onClick={handleConfirmarEndereco} disabled={(modoEntrega === 'entrega' && !enderecoId) || calculandoFrete}
                                     className="w-full bg-primary text-primary-foreground py-3 text-sm font-medium rounded hover:opacity-90 transition-opacity disabled:opacity-40 mt-2">
                                 {calculandoFrete ? 'Calculando frete...' : 'Continuar para Pagamento'}
                             </button>
@@ -418,11 +448,13 @@ export default function CheckoutPage() {
                             <div className="flex justify-between text-muted-foreground">
                                 <span>Frete</span>
                                 <span>
-                                    {calculandoFrete
-                                        ? 'Calculando...'
-                                        : freteSelecionado
-                                            ? formatCurrency(freteSelecionado.valor)
-                                            : step === 1 ? 'Selecione o endereço' : 'A calcular'}
+                                    {modoEntrega === 'retirada'
+                                        ? <span className="text-green-600 font-medium">Grátis</span>
+                                        : calculandoFrete
+                                            ? 'Calculando...'
+                                            : freteSelecionado
+                                                ? formatCurrency(freteSelecionado.valor)
+                                                : step === 1 ? 'Selecione o endereço' : 'A calcular'}
                                 </span>
                             </div>
                             <div className="border-t border-border pt-2 mt-2 flex justify-between font-semibold">

@@ -70,17 +70,22 @@ public class PedidoService {
     @Transactional
     public PedidoResponse criar(PedidoRequest dto, Cliente cliente) {
 
-        // 1️⃣ Valida endereço (e garante que é do cliente)
-        Endereco endereco = enderecoService.buscarParaPedido(dto.enderecoEntregaId(), cliente);
+        // 1️⃣ Valida endereço (ou retirada na loja)
+        boolean retirada = Boolean.TRUE.equals(dto.retiradaNaLoja());
+        if (!retirada && dto.enderecoEntregaId() == null) {
+            throw new com.primordi.api.shared.exception.BusinessException("Informe o endereço de entrega ou escolha retirada na loja");
+        }
+        Endereco endereco = retirada ? null : enderecoService.buscarParaPedido(dto.enderecoEntregaId(), cliente);
 
         // 2️⃣ Monta pedido base
         Pedido pedido = Pedido.builder()
                 .cliente(cliente)
                 .enderecoEntrega(endereco)
+                .retiradaNaLoja(retirada)
                 .status(StatusPedido.AGUARDANDO_PAGAMENTO)
                 .cupomCodigo(dto.cupomCodigo())
                 .observacoes(dto.observacoes())
-                .valorFrete(dto.valorFrete() != null ? dto.valorFrete() : BigDecimal.ZERO)
+                .valorFrete(retirada ? BigDecimal.ZERO : (dto.valorFrete() != null ? dto.valorFrete() : BigDecimal.ZERO))
                 .desconto(BigDecimal.ZERO)
                 .build();
 

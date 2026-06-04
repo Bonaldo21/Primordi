@@ -38,9 +38,13 @@ public class Pedido {
     @JoinColumn(name = "cliente_id", nullable = false)
     private Cliente cliente;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "endereco_entrega_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "endereco_entrega_id", nullable = true)
     private Endereco enderecoEntrega;
+
+    @Column(name = "retirada_na_loja", nullable = false)
+    @Builder.Default
+    private Boolean retiradaNaLoja = false;
 
     @OneToMany(
             mappedBy = "pedido",

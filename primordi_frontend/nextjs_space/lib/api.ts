@@ -168,7 +168,7 @@ export const pedidosApi = {
   },
   getById: (id: number) => request<Pedido>(`/pedidos/${id}`),
   getByCodigo: (codigo: string) => request<Pedido>(`/pedidos/codigo/${codigo}`),
-  create: (data: { enderecoEntregaId: number; itens: { produtoId: number; quantidade: number }[]; cupomCodigo?: string; valorFrete?: number; observacoes?: string }) =>
+  create: (data: { enderecoEntregaId?: number | null; retiradaNaLoja?: boolean; itens: { produtoId: number; quantidade: number }[]; cupomCodigo?: string; valorFrete?: number; observacoes?: string }) =>
     request<Pedido>('/pedidos', { method: 'POST', body: JSON.stringify(data) }),
   cancelar: (id: number, motivo?: string) =>
     request<Pedido>(`/pedidos/${id}/cancelar`, { method: 'PATCH', body: JSON.stringify({ motivo }) }),
