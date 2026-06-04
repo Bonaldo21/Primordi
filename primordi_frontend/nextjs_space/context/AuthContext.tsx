@@ -25,7 +25,9 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
+const rawApiUrl = (process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'https://primordi-production.up.railway.app/api')
+    .replace(/\s+/g, '').replace(/\/+$/, '');
+const API_URL = rawApiUrl.startsWith('http') ? rawApiUrl : `https://${rawApiUrl}`;
 const STORAGE_KEY_ACCESS  = 'primordi:accessToken';
 const STORAGE_KEY_REFRESH = 'primordi:refreshToken';
 
