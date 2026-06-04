@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Plus, Trash2, Package, X, Pencil, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Trash2, Package, X, Pencil, ToggleLeft, ToggleRight, ImagePlus, Star } from 'lucide-react';
 import { produtosApi, categoriasApi, arquivosApi } from '@/lib/api';
 import { sampleProducts, sampleCategories } from '@/lib/sample-data';
 import { formatCurrency, getProdutoImagem } from '@/lib/format';
@@ -53,10 +53,9 @@ export default function AdminProdutosPage() {
   const [saving, setSaving] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyForm);
-  const [novaImagemUrl, setNovaImagemUrl] = useState('');
-  const [novaImagemAlt, setNovaImagemAlt] = useState('');
-  const [novaImagemPrincipal, setNovaImagemPrincipal] = useState(false);
-  const [novaImagemArquivo, setNovaImagemArquivo] = useState<File | null>(null);
+  // múltiplas imagens: cada item pode ser arquivo ou URL
+  const [novasImagens, setNovasImagens] = useState<{ arquivo: File | null; url: string; principal: boolean }[]>([]);
+  const [uploadando, setUploadando] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -71,10 +70,7 @@ export default function AdminProdutosPage() {
   const openCreate = () => {
     setEditId(null);
     setForm(emptyForm);
-    setNovaImagemUrl('');
-    setNovaImagemAlt('');
-    setNovaImagemPrincipal(false);
-    setNovaImagemArquivo(null);
+    setNovasImagens([]);
     setShowModal(true);
   };
   const openEdit = async (p: Produto) => {
@@ -102,10 +98,7 @@ export default function AdminProdutosPage() {
       destaque: produto.destaque ?? false,
       ativo: produto.ativo ?? true,
     });
-    setNovaImagemUrl('');
-    setNovaImagemAlt('');
-    setNovaImagemPrincipal(false);
-    setNovaImagemArquivo(null);
+    setNovasImagens([]);
     setShowModal(true);
   };
 
@@ -146,47 +139,49 @@ export default function AdminProdutosPage() {
     setSaving(true);
     try {
       const payload = buildPayload(form);
-      const imagemUrlManual = novaImagemUrl.trim();
-      const imagemAlt = novaImagemAlt.trim();
-      let imagemUrl = imagemUrlManual;
-      if (novaImagemArquivo) {
-        const upload = await arquivosApi.uploadImagem(novaImagemArquivo);
-        imagemUrl = upload.url;
-      }
-      if (!imagemUrlManual && novaImagemArquivo) {
-        setNovaImagemUrl(imagemUrl);
-      }
+
+      // Faz upload dos arquivos e resolve todas as URLs
+      setUploadando(true);
+      const imagensResolvidas = await Promise.all(
+        novasImagens.map(async (img, idx) => {
+          let url = img.url.trim();
+          if (img.arquivo) {
+            const upload = await arquivosApi.uploadImagem(img.arquivo);
+            url = upload.url;
+          }
+          return url ? { url, principal: img.principal || idx === 0 } : null;
+        })
+      );
+      setUploadando(false);
+      const imagensValidas = imagensResolvidas.filter(Boolean) as { url: string; principal: boolean }[];
+
+      // Garante que só uma é principal
+      let temPrincipal = false;
+      const imagensFinais = imagensValidas.map((img) => {
+        if (img.principal && !temPrincipal) { temPrincipal = true; return img; }
+        return { ...img, principal: false };
+      });
+
       if (editId) {
         let updated = await produtosApi.update(editId, payload);
-        if (imagemUrl) {
-          await produtosApi.addImagem(editId, {
-            url: imagemUrl,
-            altText: imagemAlt || undefined,
-            principal: novaImagemPrincipal,
-          });
-          updated = await produtosApi.getById(editId);
+        for (const img of imagensFinais) {
+          await produtosApi.addImagem(editId, { url: img.url, principal: img.principal });
         }
+        updated = await produtosApi.getById(editId);
         setProdutos((prev) => prev.map((p) => p.id === editId ? updated : p));
         toast.success('Produto atualizado!');
       } else {
         let novo = await produtosApi.create(payload);
-        if (imagemUrl) {
-          await produtosApi.addImagem(novo.id, {
-            url: imagemUrl,
-            altText: imagemAlt || undefined,
-            principal: novaImagemPrincipal,
-          });
-          novo = await produtosApi.getById(novo.id);
+        for (const img of imagensFinais) {
+          await produtosApi.addImagem(novo.id, { url: img.url, principal: img.principal });
         }
+        novo = await produtosApi.getById(novo.id);
         setProdutos((prev) => [novo, ...prev]);
         toast.success('Produto criado!');
       }
-      setNovaImagemUrl('');
-      setNovaImagemAlt('');
-      setNovaImagemPrincipal(false);
-      setNovaImagemArquivo(null);
+      setNovasImagens([]);
       setShowModal(false);
-    } catch (err: any) { toast.error(err?.message ?? 'Erro ao salvar'); } finally { setSaving(false); }
+    } catch (err: any) { toast.error(err?.message ?? 'Erro ao salvar'); } finally { setSaving(false); setUploadando(false); }
   };
 
   const f = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
@@ -359,19 +354,96 @@ export default function AdminProdutosPage() {
                   <input type="number" step="0.1" min="0" value={form.profundidadeCm} onChange={f('profundidadeCm')} className="w-full border border-border rounded px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
                 </div>
 
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium mb-1">Foto do Produto (arquivo)</label>
-                  <input type="file" accept="image/*" onChange={(e) => setNovaImagemArquivo(e.target.files?.[0] ?? null)} className="w-full border border-border rounded px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
-                </div>
+                {/* ── Imagens ── */}
+                <div className="sm:col-span-2 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-medium">Fotos do Produto</label>
+                    <button
+                      type="button"
+                      onClick={() => setNovasImagens((prev) => [...prev, { arquivo: null, url: '', principal: prev.length === 0 }])}
+                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      <ImagePlus className="w-3.5 h-3.5" /> Adicionar foto
+                    </button>
+                  </div>
 
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium mb-1">Foto do Produto (URL)</label>
-                  <input value={novaImagemUrl} onChange={(e) => setNovaImagemUrl(e.target.value)} className="w-full border border-border rounded px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary" placeholder="https://..." />
-                </div>
+                  {/* Seletor múltiplo de arquivos */}
+                  <div>
+                    <label className="block text-xs text-muted-foreground mb-1">Selecionar vários arquivos de uma vez</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files ?? []);
+                        if (!files.length) return;
+                        setNovasImagens((prev) => [
+                          ...prev,
+                          ...files.map((arquivo, i) => ({
+                            arquivo,
+                            url: '',
+                            principal: prev.length === 0 && i === 0,
+                          })),
+                        ]);
+                        e.target.value = '';
+                      }}
+                      className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
+                    />
+                  </div>
 
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium mb-1">Texto alternativo da foto</label>
-                  <input value={novaImagemAlt} onChange={(e) => setNovaImagemAlt(e.target.value)} className="w-full border border-border rounded px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-primary" placeholder="Descrição da imagem" />
+                  {/* Lista de imagens adicionadas */}
+                  {novasImagens.length > 0 && (
+                    <div className="space-y-2">
+                      {novasImagens.map((img, idx) => (
+                        <div key={idx} className="flex items-center gap-2 bg-secondary/30 rounded p-2">
+                          {/* preview */}
+                          <div className="w-10 h-10 rounded overflow-hidden bg-secondary flex-shrink-0">
+                            {img.arquivo ? (
+                              <img src={URL.createObjectURL(img.arquivo)} className="w-full h-full object-cover" alt="" />
+                            ) : img.url ? (
+                              <img src={img.url} className="w-full h-full object-cover" alt="" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-muted-foreground"><ImagePlus className="w-4 h-4" /></div>
+                            )}
+                          </div>
+
+                          {/* nome ou URL */}
+                          <div className="flex-1 min-w-0">
+                            {img.arquivo ? (
+                              <p className="text-xs truncate">{img.arquivo.name}</p>
+                            ) : (
+                              <input
+                                value={img.url}
+                                onChange={(e) => setNovasImagens((prev) => prev.map((it, i) => i === idx ? { ...it, url: e.target.value } : it))}
+                                placeholder="https://..."
+                                className="w-full text-xs border border-border rounded px-2 py-1 bg-background"
+                              />
+                            )}
+                          </div>
+
+                          {/* principal */}
+                          <button
+                            type="button"
+                            title={img.principal ? 'Foto principal' : 'Definir como principal'}
+                            onClick={() => setNovasImagens((prev) => prev.map((it, i) => ({ ...it, principal: i === idx })))}
+                            className={`p-1 rounded ${img.principal ? 'text-yellow-500' : 'text-muted-foreground hover:text-yellow-400'}`}
+                          >
+                            <Star className="w-4 h-4" fill={img.principal ? 'currentColor' : 'none'} />
+                          </button>
+
+                          {/* remover */}
+                          <button
+                            type="button"
+                            onClick={() => setNovasImagens((prev) => prev.filter((_, i) => i !== idx))}
+                            className="p-1 text-muted-foreground hover:text-destructive"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                      <p className="text-xs text-muted-foreground">⭐ = foto principal (aparece na listagem)</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="sm:col-span-2 flex items-center gap-6">
@@ -383,17 +455,13 @@ export default function AdminProdutosPage() {
                     <input type="checkbox" checked={form.ativo} onChange={(e) => setForm({ ...form, ativo: e.target.checked })} />
                     Ativo
                   </label>
-                  <label className="flex items-center gap-2 text-sm cursor-pointer">
-                    <input type="checkbox" checked={novaImagemPrincipal} onChange={(e) => setNovaImagemPrincipal(e.target.checked)} />
-                    Definir foto como principal
-                  </label>
                 </div>
               </div>
 
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 border border-border rounded px-4 py-2 text-sm hover:bg-secondary/50">Cancelar</button>
                 <button type="submit" disabled={saving} className="flex-1 bg-primary text-primary-foreground rounded px-4 py-2 text-sm font-medium hover:opacity-90 disabled:opacity-50">
-                  {saving ? 'Salvando...' : editId ? 'Salvar Alterações' : 'Criar Produto'}
+                  {uploadando ? `Enviando ${novasImagens.length} foto(s)...` : saving ? 'Salvando...' : editId ? 'Salvar Alterações' : 'Criar Produto'}
                 </button>
               </div>
             </form>
