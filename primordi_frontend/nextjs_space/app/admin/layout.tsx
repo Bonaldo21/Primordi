@@ -30,7 +30,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="min-h-screen flex">
       <aside className="hidden md:flex flex-col w-60 bg-card border-r border-border p-4">
-        <Link href="/" className="font-display text-xl font-semibold tracking-tight mb-1">Primordi</Link>
+        <Link href="/" className="font-display text-xl font-semibold tracking-tight mb-1">Primor</Link>
         <p className="text-xs text-muted-foreground mb-6">Painel Administrativo</p>
         <nav className="flex-1 space-y-1">
           {navItems.map((item: any) => {

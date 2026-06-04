@@ -43,7 +43,9 @@ export function HomeClient() {
     <div>
       <section className="relative h-[70vh] sm:h-[80vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          <Image src="https://cdn.abacus.ai/images/7ea29d31-59dc-4105-95cc-b2fac5a0f2eb.png" alt="Produtos artesanais em couro Primordi" fill className="object-cover" priority />
+          <Image src="https://cdn.abacus.ai/images/7ea29d31-59dc-4105-95cc-b2fac5a0f2eb.png" alt="Produtos artesanais em couro Primor
+
+          " fill className="object-cover" priority />
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60" />
         </div>
         <div className="relative z-10 text-center px-4 max-w-[800px] mx-auto">
@@ -121,7 +123,7 @@ export function HomeClient() {
             <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="space-y-4">
               <p className="text-xs text-primary uppercase tracking-[0.3em]">Nossa história</p>
               <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight">Tradição em cada ponto</h2>
-              <p className="text-muted-foreground leading-relaxed">Na Primordi, cada peça é resultado de horas de trabalho manual dedicado. Utilizamos couro legítimo de alta qualidade, selecionado com cuidado para garantir durabilidade e beleza que só melhoram com o tempo.</p>
+              <p className="text-muted-foreground leading-relaxed">Na Primor, cada peça é resultado de horas de trabalho manual dedicado. Utilizamos couro legítimo de alta qualidade, selecionado com cuidado para garantir durabilidade e beleza que só melhoram com o tempo.</p>
               <p className="text-muted-foreground leading-relaxed">Nossos artesãos combinam técnicas tradicionais com design contemporâneo, criando produtos atemporais que contam uma história única.</p>
             </motion.div>
           </div>

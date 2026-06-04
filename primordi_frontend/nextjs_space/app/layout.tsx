@@ -9,11 +9,11 @@ const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mon
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: 'Primordi | Couro Artesanal',
+  title: 'Primor | Couro Artesanal',
   description: 'Produtos de couro artesanais feitos à mão com dedicação e qualidade excepcional.',
   icons: { icon: '/favicon.svg' },
   openGraph: {
-    title: 'Primordi | Couro Artesanal',
+    title: 'Primor | Couro Artesanal',
     description: 'Produtos de couro artesanais feitos à mão com dedicação e qualidade excepcional.',
     images: ['/og-image.png'],
   },

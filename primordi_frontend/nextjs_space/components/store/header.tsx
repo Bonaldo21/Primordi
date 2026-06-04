@@ -30,7 +30,7 @@ export function StoreHeader() {
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
           <Link href="/" className="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-foreground hover:text-primary transition-colors">
-            Primordi
+            Primor
           </Link>
 
           {/* Desktop Nav */}

@@ -68,7 +68,7 @@ export default function LivePage() {
           <Radio className={`w-6 h-6 ${ativa ? 'text-red-500 animate-pulse' : 'text-muted-foreground'}`} />
           <div>
             <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight">
-              {liveStatus?.titulo ?? 'Live Primordi'}
+              {liveStatus?.titulo ?? 'Live Primor'}
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               {ativa

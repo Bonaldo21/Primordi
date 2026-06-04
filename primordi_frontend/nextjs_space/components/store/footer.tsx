@@ -8,7 +8,7 @@ export function StoreFooter() {
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="font-display text-xl font-semibold tracking-tight mb-3">Primordi</h3>
+            <h3 className="font-display text-xl font-semibold tracking-tight mb-3">Primor</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Produtos de couro artesanais feitos à mão com dedicação e qualidade excepcional.
             </p>
@@ -23,12 +23,12 @@ export function StoreFooter() {
           </div>
           <div>
             <h4 className="text-sm font-medium uppercase tracking-wider mb-3">Contato</h4>
-            <p className="text-sm text-muted-foreground">contato@primordi.com.br</p>
+            <p className="text-sm text-muted-foreground">contato@primor.com.br</p>
           </div>
         </div>
         <div className="border-t border-border/50 mt-10 pt-6 text-center">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Primordi. Todos os direitos reservados.
+            © {new Date().getFullYear()} Primor. Todos os direitos reservados.
           </p>
         </div>
       </div>

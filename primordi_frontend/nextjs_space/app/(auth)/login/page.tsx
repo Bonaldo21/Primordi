@@ -31,7 +31,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-[400px]">
         <div className="text-center mb-8">
-          <Link href="/" className="font-display text-3xl font-semibold tracking-tight">Primordi</Link>
+          <Link href="/" className="font-display text-3xl font-semibold tracking-tight">Primor</Link>
           <p className="text-muted-foreground mt-2">Entre na sua conta</p>
         </div>
         <form onSubmit={handleSubmit} className="bg-card p-6 sm:p-8 rounded-xl space-y-4" style={{ boxShadow: 'var(--shadow-md)' }}>
