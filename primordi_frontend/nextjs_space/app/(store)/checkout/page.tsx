@@ -4,14 +4,14 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowLeft, MapPin, CreditCard, Check, QrCode, FileText } from 'lucide-react';
+import { ArrowLeft, MapPin, CreditCard, Check, QrCode, FileText, Truck } from 'lucide-react';
 import { initMercadoPago, CardPayment } from '@mercadopago/sdk-react';
 import { useCart } from '@/contexts/cart-context';
 import { useAuth } from '@/contexts/auth-context';
-import { enderecosApi, pedidosApi, pagamentosApi } from '@/lib/api';
+import { enderecosApi, pedidosApi, pagamentosApi, fretesApi } from '@/lib/api';
 import { formatCurrency } from '@/lib/format';
 import { toast } from 'sonner';
-import type { Endereco, CartItem } from '@/lib/types';
+import type { Endereco, CartItem, FreteOpcao } from '@/lib/types';
 
 type MetodoPagamento = 'PIX' | 'CARTAO_CREDITO' | 'BOLETO';
 
@@ -37,15 +37,18 @@ export default function CheckoutPage() {
     const [publicKey, setPublicKey] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [mpReady, setMpReady] = useState(false);
-    // CPF digitado no checkout (usado quando user.cpf é nulo)
     const [cpfInput, setCpfInput] = useState('');
+
+    const [opcoesFretes, setOpcoesFretes] = useState<FreteOpcao[]>([]);
+    const [freteSelecionado, setFreteSelecionado] = useState<FreteOpcao | null>(null);
+    const [calculandoFrete, setCalculandoFrete] = useState(false);
 
     const criandoPedido = useRef(false);
 
-    // CPF resolvido: prefere o do perfil, senão usa o digitado no checkout
     const cpfResolvido = (user?.cpf ?? '').replace(/\D/g, '') || cpfInput.replace(/\D/g, '');
-    // Usuário não tem CPF no perfil → precisa digitar
     const precisaDigitarCpf = !(user?.cpf ?? '').replace(/\D/g, '');
+
+    const totalComFrete = (subtotal ?? 0) + (freteSelecionado?.valor ?? 0);
 
     useEffect(() => {
         if (!user) return;
@@ -90,11 +93,38 @@ export default function CheckoutPage() {
         </div>
     );
 
-    const handleConfirmarEndereco = () => {
+    const handleConfirmarEndereco = async () => {
         if (!enderecoId) {
             toast.error('Selecione um endereço de entrega');
             return;
         }
+
+        const endereco = enderecos.find((e) => e.id === enderecoId);
+        if (!endereco?.cep) {
+            setStep(2);
+            return;
+        }
+
+        setCalculandoFrete(true);
+        try {
+            const pesoTotal = (items ?? []).reduce((acc: number, i: CartItem) => acc + (i?.quantidade ?? 1) * 0.5, 0);
+            const valorTotal = subtotal ?? 0;
+            const res = await fretesApi.simular({
+                cepDestino: endereco.cep.replace(/\D/g, ''),
+                pesoKg: Math.max(pesoTotal, 0.1),
+                valorDeclarado: valorTotal,
+            });
+            const opcoes = res?.opcoes ?? [];
+            setOpcoesFretes(opcoes);
+            setFreteSelecionado(opcoes[0] ?? null);
+        } catch {
+            toast.error('Não foi possível calcular o frete. Você pode continuar assim mesmo.');
+            setOpcoesFretes([]);
+            setFreteSelecionado(null);
+        } finally {
+            setCalculandoFrete(false);
+        }
+
         setStep(2);
     };
 
@@ -106,7 +136,6 @@ export default function CheckoutPage() {
     const handlePagar = async (cardFormData?: any) => {
         if (!enderecoId) return;
 
-        // Valida CPF antes de qualquer requisição
         if (precisaDigitarCpf && cpfResolvido.length !== 11) {
             toast.error('Digite um CPF válido com 11 dígitos');
             return;
@@ -263,15 +292,35 @@ export default function CheckoutPage() {
                                     <Link href="/conta/enderecos" className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 text-sm font-medium rounded hover:opacity-90">Cadastrar Endereço</Link>
                                 </div>
                             )}
-                            <button onClick={handleConfirmarEndereco} disabled={!enderecoId}
+                            <button onClick={handleConfirmarEndereco} disabled={!enderecoId || calculandoFrete}
                                     className="w-full bg-primary text-primary-foreground py-3 text-sm font-medium rounded hover:opacity-90 transition-opacity disabled:opacity-40 mt-2">
-                                Continuar para Pagamento
+                                {calculandoFrete ? 'Calculando frete...' : 'Continuar para Pagamento'}
                             </button>
                         </motion.div>
                     )}
 
                     {step === 2 && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+
+                            {/* Opções de frete */}
+                            {opcoesFretes.length > 0 && (
+                                <div className="space-y-3">
+                                    <h2 className="font-medium text-lg flex items-center gap-2"><Truck className="w-5 h-5 text-primary" /> Entrega</h2>
+                                    {opcoesFretes.map((op, i) => (
+                                        <label key={i} className={`flex items-center justify-between gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${freteSelecionado === op ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}`}>
+                                            <div className="flex items-center gap-3">
+                                                <input type="radio" name="frete" checked={freteSelecionado === op} onChange={() => setFreteSelecionado(op)} />
+                                                <div className="text-sm">
+                                                    <p className="font-medium">{op.transportadora} — {op.tipoServico}</p>
+                                                    <p className="text-muted-foreground">Prazo: {op.prazoDias} {op.prazoDias === 1 ? 'dia útil' : 'dias úteis'}</p>
+                                                </div>
+                                            </div>
+                                            <span className="text-sm font-semibold shrink-0">{formatCurrency(op.valor)}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            )}
+
                             <h2 className="font-medium text-lg flex items-center gap-2"><CreditCard className="w-5 h-5 text-primary" /> Forma de Pagamento</h2>
 
                             <div className="grid grid-cols-3 gap-3">
@@ -288,7 +337,6 @@ export default function CheckoutPage() {
                                 ))}
                             </div>
 
-                            {/* Campo CPF — aparece apenas quando o usuário não tem CPF no perfil */}
                             {precisaDigitarCpf && (
                                 <div>
                                     <label className="text-sm font-medium mb-1.5 block">CPF do pagador</label>
@@ -315,7 +363,7 @@ export default function CheckoutPage() {
                                 <div>
                                     {mpReady ? (
                                         <CardPayment
-                                            initialization={{ amount: subtotal ?? 0 }}
+                                            initialization={{ amount: totalComFrete }}
                                             onSubmit={async (formData) => { await handlePagar(formData); }}
                                             onError={(err) => { toast.error('Erro no cartão: ' + err?.message); }}
                                             customization={{ paymentMethods: { minInstallments: 1, maxInstallments: 12 } }}
@@ -361,9 +409,23 @@ export default function CheckoutPage() {
                                     <span className="shrink-0">{formatCurrency((item?.produto?.precoEfetivo ?? 0) * (item?.quantidade ?? 1))}</span>
                                 </div>
                             ))}
+                            <div className="border-t border-border pt-2 mt-2 flex justify-between text-muted-foreground">
+                                <span>Subtotal</span>
+                                <span>{formatCurrency(subtotal)}</span>
+                            </div>
+                            <div className="flex justify-between text-muted-foreground">
+                                <span>Frete</span>
+                                <span>
+                                    {calculandoFrete
+                                        ? 'Calculando...'
+                                        : freteSelecionado
+                                            ? formatCurrency(freteSelecionado.valor)
+                                            : step === 1 ? 'Selecione o endereço' : 'A calcular'}
+                                </span>
+                            </div>
                             <div className="border-t border-border pt-2 mt-2 flex justify-between font-semibold">
                                 <span>Total</span>
-                                <span>{formatCurrency(subtotal)}</span>
+                                <span>{formatCurrency(totalComFrete)}</span>
                             </div>
                         </div>
                     </div>

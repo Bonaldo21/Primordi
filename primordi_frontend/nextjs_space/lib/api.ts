@@ -183,6 +183,8 @@ export const pedidosApi = {
 
 // Fretes
 export const fretesApi = {
+  simular: (data: { cepDestino: string; pesoKg?: number; valorDeclarado?: number }) =>
+    request<{ cepDestino: string; cidade: string; estado: string; regiao: string; opcoes: FreteOpcao[] }>('/fretes/simular', { method: 'POST', body: JSON.stringify(data) }),
   calcular: (data: { cepDestino: string; pesoKg: number; alturaCm: number; larguraCm: number; comprimentoCm: number; valorDeclarado?: number }) =>
     request<FreteOpcao[]>('/fretes/calcular', { method: 'POST', body: JSON.stringify(data) }),
 };
