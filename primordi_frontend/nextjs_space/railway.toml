@@ -5,3 +5,8 @@ buildCommand = "npm run build"
 [deploy]
 startCommand = "npm run start"
 healthcheckPath = "/"
+
+[deploy]
+startCommand = "node server.js"
+healthcheckPath = "/"
+healthcheckTimeout = 300
