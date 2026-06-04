@@ -111,13 +111,14 @@ export default function CheckoutPage() {
             const valorTotal = subtotal ?? 0;
             const res = await fretesApi.simular({
                 cepDestino: endereco.cep.replace(/\D/g, ''),
-                pesoKg: Math.max(pesoTotal, 0.1),
-                valorDeclarado: valorTotal,
+                pesoKg: parseFloat(Math.max(pesoTotal, 0.1).toFixed(2)),
+                valorDeclarado: parseFloat(valorTotal.toFixed(2)),
             });
             const opcoes = res?.opcoes ?? [];
             setOpcoesFretes(opcoes);
             setFreteSelecionado(opcoes[0] ?? null);
-        } catch {
+        } catch (err: any) {
+            console.error('Erro ao calcular frete:', err);
             toast.error('Não foi possível calcular o frete. Você pode continuar assim mesmo.');
             setOpcoesFretes([]);
             setFreteSelecionado(null);
@@ -311,8 +312,9 @@ export default function CheckoutPage() {
                                             <div className="flex items-center gap-3">
                                                 <input type="radio" name="frete" checked={freteSelecionado === op} onChange={() => setFreteSelecionado(op)} />
                                                 <div className="text-sm">
-                                                    <p className="font-medium">{op.transportadora} — {op.tipoServico}</p>
+                                                    <p className="font-medium">{op.nomeServico}</p>
                                                     <p className="text-muted-foreground">Prazo: {op.prazoDias} {op.prazoDias === 1 ? 'dia útil' : 'dias úteis'}</p>
+                                                    {op.observacao && <p className="text-xs text-muted-foreground">{op.observacao}</p>}
                                                 </div>
                                             </div>
                                             <span className="text-sm font-semibold shrink-0">{formatCurrency(op.valor)}</span>

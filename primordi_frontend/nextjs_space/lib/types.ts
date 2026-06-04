@@ -132,9 +132,11 @@ export interface Cliente {
 export interface FreteOpcao {
   transportadora: string;
   tipoServico: string;
+  nomeServico: string;
   valor: number;
   prazoDias: number;
   previsaoEntrega: string;
+  observacao?: string;
 }
 
 export interface CartItem {
