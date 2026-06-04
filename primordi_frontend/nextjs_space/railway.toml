@@ -3,5 +3,6 @@ builder = "dockerfile"
 dockerfilePath = "/primordi_frontend/nextjs_space/Dockerfile"
 
 [deploy]
+startCommand = "node server.js"
 healthcheckPath = "/"
 healthcheckTimeout = 300
