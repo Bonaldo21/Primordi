@@ -1,22 +1,31 @@
 package com.primordi.api.shared.storage;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.primordi.api.shared.exception.BusinessException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.Map;
 
 @Service
 public class FileStorageService {
 
-    @Value("${primordi.upload.dir:uploads}")
-    private String uploadDir;
+    private final Cloudinary cloudinary;
+
+    public FileStorageService(
+            @Value("${cloudinary.cloud-name}") String cloudName,
+            @Value("${cloudinary.api-key}") String apiKey,
+            @Value("${cloudinary.api-secret}") String apiSecret) {
+        this.cloudinary = new Cloudinary(ObjectUtils.asMap(
+                "cloud_name", cloudName,
+                "api_key", apiKey,
+                "api_secret", apiSecret,
+                "secure", true
+        ));
+    }
 
     public String salvarImagem(MultipartFile arquivo) {
         if (arquivo == null || arquivo.isEmpty()) {
@@ -28,35 +37,14 @@ public class FileStorageService {
             throw new BusinessException("Somente arquivos de imagem são permitidos");
         }
 
-        String extensao = extrairExtensao(arquivo.getOriginalFilename());
-        String nomeArquivo = UUID.randomUUID() + extensao;
-
         try {
-            Path pastaUpload = Path.of(uploadDir).toAbsolutePath().normalize();
-            Files.createDirectories(pastaUpload);
-            Path destino = pastaUpload.resolve(nomeArquivo);
-            Files.copy(arquivo.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
-            return nomeArquivo;
+            Map<?, ?> resultado = cloudinary.uploader().upload(
+                    arquivo.getBytes(),
+                    ObjectUtils.asMap("folder", "primordi/produtos")
+            );
+            return (String) resultado.get("secure_url");
         } catch (IOException e) {
-            throw new BusinessException("Erro ao salvar arquivo de imagem");
+            throw new BusinessException("Erro ao fazer upload da imagem");
         }
-    }
-
-    private String extrairExtensao(String nomeOriginal) {
-        if (nomeOriginal == null || nomeOriginal.isBlank()) {
-            return ".bin";
-        }
-
-        int idx = nomeOriginal.lastIndexOf('.');
-        if (idx < 0 || idx == nomeOriginal.length() - 1) {
-            return ".bin";
-        }
-
-        String ext = nomeOriginal.substring(idx).toLowerCase(Locale.ROOT);
-        if (!ext.matches("\\.[a-z0-9]{1,10}")) {
-            return ".bin";
-        }
-
-        return ext;
     }
 }

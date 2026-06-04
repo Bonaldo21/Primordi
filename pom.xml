@@ -94,6 +94,13 @@
             <version>${mercadopago.version}</version>
         </dependency>
 
+        <!-- Cloudinary -->
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http44</artifactId>
+            <version>1.39.0</version>
+        </dependency>
+
         <!-- Swagger / OpenAPI (documentação) -->
         <dependency>
             <groupId>org.springdoc</groupId>
