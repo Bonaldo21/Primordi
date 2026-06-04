@@ -6,8 +6,6 @@ RUN npm install --legacy-peer-deps
 
 COPY . .
 RUN npm run build
-
-# Verifica se o standalone foi gerado corretamente
 RUN ls -la .next/standalone || (echo "ERRO: .next/standalone não existe!" && exit 1)
 
 # ---
@@ -17,6 +15,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
 
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
@@ -24,5 +23,4 @@ COPY --from=builder /app/.next/static ./.next/static
 
 EXPOSE 3000
 
-# Usa $PORT do Railway se disponível, senão usa 3000
-CMD ["sh", "-c", "PORT=${PORT:-3000} node server.js"]
+CMD ["node", "server.js"]
