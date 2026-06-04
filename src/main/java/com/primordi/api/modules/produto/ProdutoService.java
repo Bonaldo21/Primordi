@@ -5,6 +5,7 @@ import com.primordi.api.modules.categoria.CategoriaRepository;
 import com.primordi.api.modules.live.LiveEvent;
 import com.primordi.api.modules.live.LiveEventService;
 import com.primordi.api.modules.live.LiveEventType;
+import com.primordi.api.modules.pedido.PedidoItemRepository;
 import com.primordi.api.modules.produto.dto.*;
 import com.primordi.api.shared.exception.BusinessException;
 import com.primordi.api.shared.exception.ResourceNotFoundException;
@@ -27,6 +28,7 @@ public class ProdutoService {
     private final ProdutoImagemRepository imagemRepository;
     private final CategoriaRepository categoriaRepository;
     private final LiveEventService liveEventService;
+    private final PedidoItemRepository pedidoItemRepository;
 
     // ========== LISTAGEM ==========
 
@@ -163,6 +165,13 @@ public class ProdutoService {
 
     public void deletarDefinitivo(Long id) {
         Produto produto = buscarEntidade(id);
+        long totalPedidos = pedidoItemRepository.countByProdutoId(id);
+        if (totalPedidos > 0) {
+            throw new BusinessException(
+                "Não é possível excluir este produto pois ele está vinculado a " +
+                totalPedidos + " pedido(s). Use a opção de inativar."
+            );
+        }
         produtoRepository.delete(produto);
     }
 
