@@ -6,6 +6,8 @@ type UploadImagemResponse = {
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://primordi-production.up.railway.app';
+console.log('API_BASE:', process.env.NEXT_PUBLIC_API_BASE_URL);
+
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
