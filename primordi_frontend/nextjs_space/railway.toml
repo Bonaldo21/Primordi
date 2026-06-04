@@ -1,7 +1,7 @@
 [build]
 builder = "dockerfile"
+dockerfilePath = "/primordi_frontend/nextjs_space/Dockerfile"
 
 [deploy]
-startCommand = "PORT=${PORT:-3000} node server.js"
 healthcheckPath = "/"
 healthcheckTimeout = 300
