@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowRight, Gem, Shield, Truck } from 'lucide-react';
 import { ProductCard } from '@/components/store/product-card';
-import { sampleProducts, sampleCategories } from '@/lib/sample-data';
 import { produtosApi, categoriasApi } from '@/lib/api';
 import type { Produto, Categoria } from '@/lib/types';
 
@@ -24,11 +23,11 @@ export function HomeClient() {
         ]);
         const prodResult = prods.status === 'fulfilled' ? prods.value : null;
         const catResult = cats.status === 'fulfilled' ? cats.value : null;
-        setDestaques((prodResult as Produto[] ?? [])?.length > 0 ? prodResult as Produto[] : sampleProducts.filter((p: Produto) => p?.destaque));
-        setCategorias((catResult as Categoria[] ?? [])?.length > 0 ? catResult as Categoria[] : sampleCategories);
+        setDestaques((prodResult as Produto[]) ?? []);
+        setCategorias((catResult as Categoria[]) ?? []);
       } catch {
-        setDestaques(sampleProducts.filter((p: Produto) => p?.destaque));
-        setCategorias(sampleCategories);
+        setDestaques([]);
+        setCategorias([]);
       } finally {
         setLoading(false);
       }

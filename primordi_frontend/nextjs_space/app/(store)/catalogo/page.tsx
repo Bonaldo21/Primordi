@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { ProductCard } from '@/components/store/product-card';
-import { sampleProducts, sampleCategories } from '@/lib/sample-data';
 import { produtosApi, categoriasApi } from '@/lib/api';
 import type { Produto, Categoria } from '@/lib/types';
 import { motion } from 'framer-motion';
@@ -29,11 +28,11 @@ function CatalogoContent() {
       ]);
       const prods = prodsRes.status === 'fulfilled' ? (prodsRes.value?.content ?? []) : [];
       const cats = catsRes.status === 'fulfilled' ? (catsRes.value ?? []) : [];
-      setProdutos(prods?.length > 0 ? prods : sampleProducts);
-      setCategorias(cats?.length > 0 ? cats : sampleCategories);
+      setProdutos(prods ?? []);
+      setCategorias(cats ?? []);
     } catch {
-      setProdutos(sampleProducts);
-      setCategorias(sampleCategories);
+      setProdutos([]);
+      setCategorias([]);
     } finally {
       setLoading(false);
     }

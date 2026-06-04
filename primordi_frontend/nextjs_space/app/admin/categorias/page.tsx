@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Tags, Trash2, Plus, Pencil, X } from 'lucide-react';
 import { categoriasApi, arquivosApi } from '@/lib/api';
-import { sampleCategories } from '@/lib/sample-data';
+
 import type { Categoria } from '@/lib/types';
 import { toast } from 'sonner';
 
@@ -23,8 +23,8 @@ export default function AdminCategoriasPage() {
   async function load() {
     try {
       const c = await categoriasApi.todas();
-      setCategorias((c ?? [])?.length > 0 ? c : sampleCategories);
-    } catch { setCategorias(sampleCategories); } finally { setLoading(false); }
+      setCategorias(c ?? []);
+    } catch { toast.error("Erro ao carregar categorias"); } finally { setLoading(false); }
   }
 
   const openCreate = () => { setEditId(null); setForm(emptyForm); setImagemArquivo(null); setShowModal(true); };

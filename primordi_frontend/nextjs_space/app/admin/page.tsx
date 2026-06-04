@@ -2,23 +2,26 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Package, Tags, ShoppingCart, Users, TrendingUp, DollarSign } from 'lucide-react';
-import { sampleProducts, sampleCategories } from '@/lib/sample-data';
-import { produtosApi, categoriasApi } from '@/lib/api';
+import { Package, Tags, ShoppingCart, DollarSign } from 'lucide-react';
+import { produtosApi, categoriasApi, pedidosApi } from '@/lib/api';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({ produtos: 0, categorias: 0, pedidos: 0, receita: 0 });
 
   useEffect(() => {
     async function load() {
-      try {
-        const [prods, cats] = await Promise.allSettled([produtosApi.listar({ size: '1' }), categoriasApi.todas()]);
-        const totalProds = prods.status === 'fulfilled' ? (prods.value?.totalElements ?? sampleProducts.length) : sampleProducts.length;
-        const totalCats = cats.status === 'fulfilled' ? ((cats.value as any)?.length ?? sampleCategories.length) : sampleCategories.length;
-        setStats({ produtos: totalProds, categorias: totalCats, pedidos: 24, receita: 15890 });
-      } catch {
-        setStats({ produtos: sampleProducts.length, categorias: sampleCategories.length, pedidos: 24, receita: 15890 });
-      }
+      const [prods, cats, pedidos] = await Promise.allSettled([
+        produtosApi.listar({ size: '1' }),
+        categoriasApi.todas(),
+        pedidosApi.admin.listar({ size: '100' }),
+      ]);
+      const totalProds = prods.status === 'fulfilled' ? (prods.value?.totalElements ?? 0) : 0;
+      const totalCats = cats.status === 'fulfilled' ? ((cats.value as any)?.length ?? 0) : 0;
+      const totalPedidos = pedidos.status === 'fulfilled' ? (pedidos.value?.totalElements ?? 0) : 0;
+      const receita = pedidos.status === 'fulfilled'
+        ? (pedidos.value?.content ?? []).reduce((sum: number, p: any) => sum + (p?.total ?? 0), 0)
+        : 0;
+      setStats({ produtos: totalProds, categorias: totalCats, pedidos: totalPedidos, receita });
     }
     load();
   }, []);
@@ -27,7 +30,7 @@ export default function AdminDashboard() {
     { label: 'Produtos', value: stats.produtos, icon: Package, color: 'text-blue-600 bg-blue-50' },
     { label: 'Categorias', value: stats.categorias, icon: Tags, color: 'text-green-600 bg-green-50' },
     { label: 'Pedidos', value: stats.pedidos, icon: ShoppingCart, color: 'text-orange-600 bg-orange-50' },
-    { label: 'Receita', value: `R$ ${(stats.receita / 100).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`, icon: DollarSign, color: 'text-primary bg-primary/10' },
+    { label: 'Receita', value: `R$ ${stats.receita.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`, icon: DollarSign, color: 'text-primary bg-primary/10' },
   ];
 
   return (

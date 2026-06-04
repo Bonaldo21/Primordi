@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import { ShoppingBag, Minus, Plus, ArrowLeft, Check } from 'lucide-react';
 import { useCart } from '@/contexts/cart-context';
 import { produtosApi } from '@/lib/api';
-import { sampleProducts } from '@/lib/sample-data';
+
 import { formatCurrency, getProdutoImagem } from '@/lib/format';
 import type { Produto } from '@/lib/types';
 import { toast } from 'sonner';
@@ -28,8 +28,7 @@ export default function ProdutoPage() {
         const p = await produtosApi.getBySlug(slug);
         setProduto(p ?? null);
       } catch {
-        const sample = sampleProducts.find((p: Produto) => p?.slug === slug);
-        setProduto(sample ?? null);
+        setProduto(null);
       } finally { setLoading(false); }
     }
     if (slug) load();
