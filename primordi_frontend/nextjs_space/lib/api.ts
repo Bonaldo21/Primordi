@@ -14,7 +14,7 @@ const API_BASE = rawBase.startsWith('http')
     ? rawBase
     : `https://${rawBase}`;
 
-console.log('API_BASE final:', API_BASE);
+
 
 
 
