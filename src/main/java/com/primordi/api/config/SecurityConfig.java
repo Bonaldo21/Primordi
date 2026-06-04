@@ -43,10 +43,11 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
 
-                        // Vitrine pública (cliente vê produtos sem login)
-                        .requestMatchers(HttpMethod.GET, "/produtos/vitrine", "/produtos/destaques").permitAll()
+                        // Vitrine e catálogo públicos (cliente vê produtos sem login)
+                        .requestMatchers(HttpMethod.GET, "/produtos", "/produtos/vitrine", "/produtos/destaques").permitAll()
                         .requestMatchers(HttpMethod.GET, "/produtos/slug/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categorias/ativas", "/categorias/slug/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/categorias").permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 
                         // Simulação de frete pública (não exige login)
@@ -69,8 +70,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/produtos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/produtos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/produtos/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/produtos").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/categorias").hasRole("ADMIN")
+                        // GET /produtos e /categorias já liberados acima — sem duplicata
 
                         // Resto requer autenticação
                         .anyRequest().authenticated()
