@@ -50,20 +50,15 @@ const API_BASE = (() => {
 })();
 
 /**
- * Corrige URLs de imagem que foram gravadas com host interno do Railway
- * (ex: http://0.0.0.0:8080/api/uploads/foto.jpg) e as substitui pelo
- * host público correto extraído de NEXT_PUBLIC_API_BASE_URL.
+ * Qualquer URL que contenha /uploads/ é um arquivo salvo pelo nosso backend.
+ * Sempre reconstrói com o host público correto, independente do que está salvo no banco.
+ * URLs externas (imgur, cloudinary, etc.) são retornadas sem alteração.
  */
 function normalizarUrlImagem(url: string | null | undefined): string | null {
   if (!url) return null;
-  // Se já é uma URL externa válida (não contém host interno) retorna direto
-  if (url.startsWith('http') && !url.match(/https?:\/\/(0\.0\.0\.0|localhost|127\.|172\.|10\.|192\.168\.)/)) {
-    return url;
-  }
-  // Extrai só o caminho /uploads/arquivo.ext e monta com o host público
-  const match = url.match(/\/uploads\/[^?#]+/);
+  const match = url.match(/\/uploads\/.+/);
   if (match) return `${API_BASE}${match[0]}`;
-  return url;
+  return url; // URL externa — retorna sem alterar
 }
 
 export function getProdutoImagem(produto: any): string {
