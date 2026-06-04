@@ -42,7 +42,8 @@ function CatalogoContent() {
   useEffect(() => { setCategoriaAtiva(categoriaParam); }, [categoriaParam]);
 
   const filtered = (produtos ?? []).filter((p: Produto) => {
-    if (categoriaAtiva && p?.categoria?.slug !== categoriaAtiva) return false;
+    const slug = (p as any)?.categoriaSlug ?? (p as any)?.categoria?.slug ?? null;
+    if (categoriaAtiva && slug !== categoriaAtiva) return false;
     if (busca && !(p?.nome ?? '').toLowerCase().includes(busca.toLowerCase())) return false;
     return true;
   }).sort((a: Produto, b: Produto) => {
