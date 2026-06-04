@@ -23,8 +23,12 @@ export function HomeClient() {
         ]);
         const prodResult = prods.status === 'fulfilled' ? prods.value : null;
         const catResult = cats.status === 'fulfilled' ? cats.value : null;
-        setDestaques((prodResult as Produto[]) ?? []);
-        setCategorias((catResult as Categoria[]) ?? []);
+        // destaques pode ser array direto ou paginado { content: [] }
+        const destaquesArr = Array.isArray(prodResult)
+          ? prodResult
+          : (prodResult as any)?.content ?? [];
+        setDestaques(destaquesArr);
+        setCategorias(Array.isArray(catResult) ? catResult : []);
       } catch {
         setDestaques([]);
         setCategorias([]);
