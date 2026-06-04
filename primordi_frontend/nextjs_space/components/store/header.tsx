@@ -1,16 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { useCart } from '@/contexts/cart-context';
 import { ShoppingBag, User, Menu, X, LogOut, LayoutDashboard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { liveApi } from '@/lib/api';
 
 export function StoreHeader() {
   const { user, logout, isAdmin } = useAuth();
   const { totalItems } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [liveAtiva, setLiveAtiva] = useState(false);
+
+  useEffect(() => {
+    liveApi.status().then((s) => setLiveAtiva(s?.ativa ?? false)).catch(() => {});
+  }, []);
 
   const navLinks = [
     { href: '/', label: 'Início' },
@@ -38,6 +44,19 @@ export function StoreHeader() {
                 {link?.label}
               </Link>
             ))}
+            <Link href="/live" className="flex items-center gap-1.5 text-sm tracking-wide uppercase transition-colors hover:text-foreground">
+              {liveAtiva ? (
+                <>
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600" />
+                  </span>
+                  <span className="text-red-600 font-semibold">Live</span>
+                </>
+              ) : (
+                <span className="text-muted-foreground">Live</span>
+              )}
+            </Link>
           </nav>
 
           {/* Desktop Actions */}
@@ -104,6 +123,19 @@ export function StoreHeader() {
                   {link?.label}
                 </Link>
               ))}
+              <Link href="/live" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 text-sm tracking-wide py-2 uppercase">
+                {liveAtiva ? (
+                  <>
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600" />
+                    </span>
+                    <span className="text-red-600 font-semibold">Live</span>
+                  </>
+                ) : (
+                  <span className="text-muted-foreground">Live</span>
+                )}
+              </Link>
               <div className="border-t border-border/50 pt-3 mt-1 flex flex-col gap-2">
                 {isAdmin && (
                   <Link href="/admin" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 text-sm text-muted-foreground py-2">
