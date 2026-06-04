@@ -62,8 +62,12 @@ function normalizarUrlImagem(url: string | null | undefined): string | null {
 }
 
 export function getProdutoImagem(produto: any): string {
+  // ProdutoResponse (detalhe): tem array imagens[]
   const imgs = produto?.imagens ?? [];
   const principal = imgs.find((i: any) => i?.principal);
-  const url = principal?.url ?? imgs?.[0]?.url ?? null;
+  const urlDaLista = principal?.url ?? imgs?.[0]?.url ?? null;
+
+  // ProdutoResumoResponse (listagem): tem campo imagemPrincipal string
+  const url = urlDaLista ?? produto?.imagemPrincipal ?? null;
   return normalizarUrlImagem(url) ?? '/placeholder-product.svg';
 }

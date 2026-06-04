@@ -77,26 +77,30 @@ export default function AdminProdutosPage() {
     setNovaImagemArquivo(null);
     setShowModal(true);
   };
-  const openEdit = (p: Produto) => {
+  const openEdit = async (p: Produto) => {
     setEditId(p.id);
+    // Busca o produto completo para garantir todos os campos (evita formato resumido da listagem)
+    let produto: any = p;
+    try { produto = await produtosApi.getById(p.id); } catch {}
     setForm({
-      nome: p.nome ?? '',
-      slug: (p as any).slug ?? '',
-      descricao: (p as any).descricao ?? '',
-      sku: p.sku ?? '',
-      tipoCouro: (p as any).tipoCouro ?? '',
-      cor: (p as any).cor ?? '',
-      preco: String(p.preco ?? ''),
-      precoPromocional: String((p as any).precoPromocional ?? ''),
-      estoque: String(p.estoque ?? 0),
-      estoqueMinimo: String(p.estoqueMinimo ?? 0),
-      pesoKg: String((p as any).pesoKg ?? ''),
-      alturaCm: String((p as any).alturaCm ?? ''),
-      larguraCm: String((p as any).larguraCm ?? ''),
-      profundidadeCm: String((p as any).profundidadeCm ?? ''),
-      categoriaId: String(p.categoria?.id ?? ''),
-      destaque: p.destaque ?? false,
-      ativo: (p as any).ativo ?? true,
+      nome: produto.nome ?? '',
+      slug: produto.slug ?? '',
+      descricao: produto.descricao ?? '',
+      sku: produto.sku ?? '',
+      tipoCouro: produto.tipoCouro ?? '',
+      cor: produto.cor ?? '',
+      preco: String(produto.preco ?? ''),
+      precoPromocional: String(produto.precoPromocional ?? ''),
+      estoque: String(produto.estoque ?? 0),
+      estoqueMinimo: String(produto.estoqueMinimo ?? 0),
+      pesoKg: String(produto.pesoKg ?? ''),
+      alturaCm: String(produto.alturaCm ?? ''),
+      larguraCm: String(produto.larguraCm ?? ''),
+      profundidadeCm: String(produto.profundidadeCm ?? ''),
+      // aceita tanto formato aninhado (categoria.id) quanto plano (categoriaId)
+      categoriaId: String(produto.categoria?.id ?? produto.categoriaId ?? ''),
+      destaque: produto.destaque ?? false,
+      ativo: produto.ativo ?? true,
     });
     setNovaImagemUrl('');
     setNovaImagemAlt('');
