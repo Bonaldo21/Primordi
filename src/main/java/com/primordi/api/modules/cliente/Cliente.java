@@ -57,14 +57,6 @@ public class Cliente implements UserDetails {
     @Builder.Default
     private Boolean emailVerificado = false;
 
-    /** Provedor social: GOOGLE, FACEBOOK, etc. Null = login tradicional */
-    @Column(name = "social_provider", length = 20)
-    private String socialProvider;
-
-    /** ID único do usuário no provedor social */
-    @Column(name = "social_id", length = 100)
-    private String socialId;
-
     @CreationTimestamp
     @Column(name = "criado_em", updatable = false)
     private LocalDateTime criadoEm;

@@ -87,4 +87,16 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
             WHERE p.ativo = true AND p.estoque = 0
             """)
     java.util.List<Produto> buscarEsgotados();
+
+    /** Produtos marcados para a live, ativos */
+    @Query("""
+            SELECT p FROM Produto p
+            LEFT JOIN FETCH p.imagens
+            LEFT JOIN FETCH p.categoria
+            WHERE p.daLive = true AND p.ativo = true
+            ORDER BY p.nome ASC
+            """)
+    java.util.List<Produto> buscarProdutosDaLive();
+
+    java.util.List<Produto> findByDaLiveTrueAndAtivoTrue();
 }

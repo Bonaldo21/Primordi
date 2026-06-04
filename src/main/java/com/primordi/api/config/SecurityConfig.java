@@ -52,9 +52,12 @@ public class SecurityConfig {
                         // Simulação de frete pública (não exige login)
                         .requestMatchers(HttpMethod.POST, "/fretes/simular").permitAll()
 
-                        // Tela Live — SSE público para admin/clientes autenticados
+                        // Live — status e stream público; admin gerencia via /toggle e /produtos
                         .requestMatchers(HttpMethod.GET, "/live/status").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/live/eventos").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/live/eventos").permitAll()
+
+                        // Configurações — redes sociais públicas para o rodapé
+                        .requestMatchers(HttpMethod.GET, "/configuracoes/social").permitAll()
 
                         // ===== ADMIN-ONLY =====
                         .requestMatchers(HttpMethod.POST, "/categorias/**").hasRole("ADMIN")

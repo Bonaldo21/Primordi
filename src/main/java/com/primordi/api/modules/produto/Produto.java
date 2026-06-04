@@ -86,6 +86,10 @@ public class Produto {
     @Builder.Default
     private Boolean destaque = false;
 
+    @Column(name = "da_live", nullable = false)
+    @Builder.Default
+    private Boolean daLive = false;
+
     @CreationTimestamp
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;

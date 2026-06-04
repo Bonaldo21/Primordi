@@ -147,6 +147,7 @@ public class ProdutoService {
         if (request.estoque() != null) produto.setEstoque(request.estoque());
         if (request.estoqueMinimo() != null) produto.setEstoqueMinimo(request.estoqueMinimo());
         if (request.destaque() != null) produto.setDestaque(request.destaque());
+        if (request.daLive() != null) produto.setDaLive(request.daLive());
         if (request.ativo() != null) produto.setAtivo(request.ativo());
 
         validarPrecoPromocional(produto.getPreco(), produto.getPrecoPromocional());

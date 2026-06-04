@@ -2,6 +2,12 @@ spring:
   application:
     name: primordi-api
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 20MB       # era padrão 1MB — agora suporta imagens de alta qualidade
+      max-request-size: 50MB    # limite total da requisição (múltiplas imagens)
+
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}

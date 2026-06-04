@@ -16,6 +16,7 @@ public record ProdutoResumoResponse(
         Integer estoque,
         Boolean ativo,
         Boolean destaque,
+        Boolean daLive,
         String imagemPrincipal,
         Long categoriaId,
         String categoriaNome
@@ -39,6 +40,7 @@ public record ProdutoResumoResponse(
                 p.getEstoque(),
                 p.getAtivo(),
                 p.getDestaque(),
+                p.getDaLive(),
                 imagemPrincipal,
                 p.getCategoria().getId(),
                 p.getCategoria().getNome()

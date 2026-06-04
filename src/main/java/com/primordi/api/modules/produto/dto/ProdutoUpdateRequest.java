@@ -49,5 +49,6 @@ public record ProdutoUpdateRequest(
         Integer estoqueMinimo,
 
         Boolean ativo,
-        Boolean destaque
+        Boolean destaque,
+        Boolean daLive
 ) {}
