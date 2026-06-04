@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
-import { LayoutDashboard, Package, Tags, ShoppingCart, Users, ArrowLeft, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, Tags, ShoppingCart, Users, ArrowLeft, LogOut, Radio } from 'lucide-react';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -12,6 +12,7 @@ const navItems = [
   { href: '/admin/categorias', label: 'Categorias', icon: Tags },
   { href: '/admin/pedidos', label: 'Pedidos', icon: ShoppingCart },
   { href: '/admin/clientes', label: 'Clientes', icon: Users },
+  { href: '/admin/live', label: 'Live', icon: Radio },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

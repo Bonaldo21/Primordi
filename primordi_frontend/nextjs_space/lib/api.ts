@@ -187,6 +187,18 @@ export const fretesApi = {
     request<FreteOpcao[]>('/fretes/calcular', { method: 'POST', body: JSON.stringify(data) }),
 };
 
+// Live
+export const liveApi = {
+  status: () => request<any>('/live/status'),
+  toggle: (ativar: boolean, titulo?: string) => {
+    const params = new URLSearchParams({ ativar: String(ativar) });
+    if (titulo) params.append('titulo', titulo);
+    return request<any>(`/live/toggle?${params}`, { method: 'POST' });
+  },
+  toggleProduto: (produtoId: number, daLive: boolean) =>
+    request<any>(`/live/produtos/${produtoId}?daLive=${daLive}`, { method: 'PATCH' }),
+};
+
 // Pagamentos
 export const pagamentosApi = {
   criar: (data: any) => request<any>('/pagamentos', { method: 'POST', body: JSON.stringify(data) }),
