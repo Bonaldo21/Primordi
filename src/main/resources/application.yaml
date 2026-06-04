@@ -32,7 +32,7 @@ server:
 
 primordi:
   cors:
-    allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173,http://localhost:4200}
+    allowed-origins: ${ALLOWED_ORIGINS:https://front-production-5ab2.up.railway.app,http://localhost:3000,http://localhost:5173,http://localhost:4200}
   jwt:
     secret: ${JWT_SECRET:troque-essa-chave-secreta-em-producao-com-pelo-menos-256-bits-seguros-aqui}
     expiration-ms: 3600000           # 1 hora
