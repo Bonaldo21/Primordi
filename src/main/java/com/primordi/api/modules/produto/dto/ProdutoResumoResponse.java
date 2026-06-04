@@ -19,7 +19,8 @@ public record ProdutoResumoResponse(
         Boolean daLive,
         String imagemPrincipal,
         Long categoriaId,
-        String categoriaNome
+        String categoriaNome,
+        String categoriaSlug
 ) {
     public static ProdutoResumoResponse from(Produto p) {
         String imagemPrincipal = p.getImagens().stream()
@@ -43,7 +44,8 @@ public record ProdutoResumoResponse(
                 p.getDaLive(),
                 imagemPrincipal,
                 p.getCategoria().getId(),
-                p.getCategoria().getNome()
+                p.getCategoria().getNome(),
+                p.getCategoria().getSlug()
         );
     }
 }
