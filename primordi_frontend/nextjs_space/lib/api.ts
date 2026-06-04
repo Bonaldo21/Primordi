@@ -5,8 +5,17 @@ type UploadImagemResponse = {
   url: string;
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://primordi-production.up.railway.app';
-console.log('API_BASE:', process.env.NEXT_PUBLIC_API_BASE_URL);
+// ✅ Corrigido — remove espaços, quebras de linha e garante https://
+const rawBase = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://primordi-production.up.railway.app')
+    .replace(/\s+/g, '')        // remove espaços e \n
+    .replace(/\/+$/, '');       // remove barra final se houver
+
+const API_BASE = rawBase.startsWith('http')
+    ? rawBase
+    : `https://${rawBase}`;
+
+console.log('API_BASE final:', API_BASE);
+
 
 
 export function getToken(): string | null {
