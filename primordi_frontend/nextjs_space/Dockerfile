@@ -6,9 +6,6 @@ RUN npm install --legacy-peer-deps
 
 COPY . .
 RUN npm run build
-RUN ls -la .next/standalone || (echo "ERRO: .next/standalone não existe!" && exit 1)
-
-# ---
 
 FROM node:20-alpine AS runner
 WORKDIR /app
