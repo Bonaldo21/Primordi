@@ -80,16 +80,23 @@ public class PagamentoService {
 
             Payment payment = client.create(request);
 
+            String qrCode = null;
+            String qrCodeBase64 = null;
+            if (payment.getPointOfInteraction() != null
+                    && payment.getPointOfInteraction().getTransactionData() != null) {
+                qrCode = payment.getPointOfInteraction().getTransactionData().getQrCode();
+                qrCodeBase64 = payment.getPointOfInteraction().getTransactionData().getQrCodeBase64();
+            }
+            log.info("PIX gerado: transacaoId={} qrCode={}", payment.getId(), qrCode != null ? "OK" : "NULL");
+
             Pagamento pagamento = Pagamento.builder()
                     .pedidoId(pedido.getId())
                     .metodo(MetodoPagamento.PIX)
                     .status(StatusPagamento.fromMercadoPago(payment.getStatus()))
                     .valor(pedido.getTotal())
                     .transacaoId(String.valueOf(payment.getId()))
-                    .qrCode(payment.getPointOfInteraction() != null
-                            ? payment.getPointOfInteraction().getTransactionData().getQrCode() : null)
-                    .qrCodeBase64(payment.getPointOfInteraction() != null
-                            ? payment.getPointOfInteraction().getTransactionData().getQrCodeBase64() : null)
+                    .qrCode(qrCode)
+                    .qrCodeBase64(qrCodeBase64)
                     .build();
 
             return PagamentoResponse.fromEntity(pagamentoRepository.save(pagamento));

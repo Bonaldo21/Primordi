@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { useCart } from '@/contexts/cart-context';
-import { ShoppingBag, User, Menu, X, LogOut, LayoutDashboard } from 'lucide-react';
+import { ShoppingBag, User, Menu, X, LogOut, LayoutDashboard, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { liveApi } from '@/lib/api';
 
@@ -67,9 +67,9 @@ export function StoreHeader() {
               </Link>
             )}
             {user ? (
-              <button onClick={logout} className="p-2 text-muted-foreground hover:text-foreground transition-colors" title="Sair">
-                <LogOut className="w-5 h-5" />
-              </button>
+              <Link href="/conta" className="p-2 text-muted-foreground hover:text-foreground transition-colors" title="Minha Conta">
+                <User className="w-5 h-5" />
+              </Link>
             ) : (
               <Link href="/login" className="p-2 text-muted-foreground hover:text-foreground transition-colors" title="Entrar">
                 <User className="w-5 h-5" />
@@ -143,9 +143,17 @@ export function StoreHeader() {
                   </Link>
                 )}
                 {user ? (
-                  <button onClick={() => { logout(); setMenuOpen(false); }} className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-                    <LogOut className="w-4 h-4" /> Sair
-                  </button>
+                  <>
+                    <Link href="/conta/pedidos" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                      <Package className="w-4 h-4" /> Meus Pedidos
+                    </Link>
+                    <Link href="/conta" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                      <User className="w-4 h-4" /> Minha Conta
+                    </Link>
+                    <button onClick={() => { logout(); setMenuOpen(false); }} className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                      <LogOut className="w-4 h-4" /> Sair
+                    </button>
+                  </>
                 ) : (
                   <Link href="/login" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 text-sm text-muted-foreground py-2">
                     <User className="w-4 h-4" /> Entrar
