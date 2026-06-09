@@ -95,8 +95,9 @@ public class PagamentoService {
             return PagamentoResponse.fromEntity(pagamentoRepository.save(pagamento));
 
         } catch (MPApiException e) {
-            log.error("Erro MP ao criar PIX: status={} body={}", e.getStatusCode(), e.getApiResponse().getContent());
-            throw new BusinessException("Erro ao processar PIX: " + e.getMessage());
+            String body = e.getApiResponse() != null ? e.getApiResponse().getContent() : "sem body";
+            log.error("Erro MP ao criar PIX: status={} body={}", e.getStatusCode(), body);
+            throw new BusinessException("Erro ao processar PIX [" + e.getStatusCode() + "]: " + body);
         } catch (MPException e) {
             log.error("Erro ao criar PIX: {}", e.getMessage());
             throw new BusinessException("Erro ao processar PIX: " + e.getMessage());
@@ -147,8 +148,9 @@ public class PagamentoService {
             return PagamentoResponse.fromEntity(salvo);
 
         } catch (MPApiException e) {
-            log.error("Erro MP ao criar cartão: status={} body={}", e.getStatusCode(), e.getApiResponse().getContent());
-            throw new BusinessException("Erro ao processar cartão: " + e.getMessage());
+            String body = e.getApiResponse() != null ? e.getApiResponse().getContent() : "sem body";
+            log.error("Erro MP ao criar cartão: status={} body={}", e.getStatusCode(), body);
+            throw new BusinessException("Erro ao processar cartão [" + e.getStatusCode() + "]: " + body);
         } catch (MPException e) {
             log.error("Erro ao criar pagamento cartão: {}", e.getMessage());
             throw new BusinessException("Erro ao processar cartão: " + e.getMessage());
@@ -194,8 +196,9 @@ public class PagamentoService {
             return PagamentoResponse.fromEntity(pagamentoRepository.save(pagamento));
 
         } catch (MPApiException e) {
-            log.error("Erro MP ao criar boleto: status={} body={}", e.getStatusCode(), e.getApiResponse().getContent());
-            throw new BusinessException("Erro ao processar boleto: " + e.getMessage());
+            String body = e.getApiResponse() != null ? e.getApiResponse().getContent() : "sem body";
+            log.error("Erro MP ao criar boleto: status={} body={}", e.getStatusCode(), body);
+            throw new BusinessException("Erro ao processar boleto [" + e.getStatusCode() + "]: " + body);
         } catch (MPException e) {
             log.error("Erro ao criar boleto: {}", e.getMessage());
             throw new BusinessException("Erro ao processar boleto: " + e.getMessage());
