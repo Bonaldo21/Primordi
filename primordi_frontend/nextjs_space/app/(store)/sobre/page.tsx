@@ -18,14 +18,14 @@ export default function SobrePage() {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-16">
           <p className="text-xs text-primary uppercase tracking-[0.3em] mb-3">Sobre nós</p>
           <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight mb-4">Primor</h1>
-          <p className="text-muted-foreground max-w-lg mx-auto">Tradição e modernidade em cada peça de couro artesanal</p>
+          <p className="text-muted-foreground max-w-lg mx-auto">Desde 1954, a fábrica mais antiga de Serra Negra — SP</p>
         </motion.div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center mb-20">
           <div className="relative aspect-[3/2] rounded-lg overflow-hidden"><Image src="https://cdn.abacus.ai/images/7609f3a9-f315-45c1-83de-80de24a2b89e.png" alt="Artesão" fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" /></div>
           <div className="space-y-4">
             <h2 className="font-display text-2xl font-semibold">Nossa História</h2>
-            <p className="text-muted-foreground leading-relaxed">A Primor nasceu da paixão por criar produtos de couro que transcendem o tempo. Fundada por artesãos com décadas de experiência, nossa marca combina técnicas tradicionais com design contemporâneo e minimalista.</p>
-            <p className="text-muted-foreground leading-relaxed">Cada peça que sai do nosso ateliê carrega consigo horas de trabalho manual dedicado, desde a seleção cuidadosa do couro até o último ponto de costura.</p>
+            <p className="text-muted-foreground leading-relaxed">Desde 1954 produzindo artigos em couro legítimo, somos a fábrica mais antiga de Serra Negra — SP. Nossa trajetória é longínqua, prezando sempre em qualidade e durabilidade.</p>
+            <p className="text-muted-foreground leading-relaxed">As peças são feitas artesanalmente, alinhadas sempre na excelência do material a designs modernos e estilosos. Somos referência regional, temos três lojas no interior de SP e estamos crescendo cada vez mais no online. Sejam bem-vindos!</p>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

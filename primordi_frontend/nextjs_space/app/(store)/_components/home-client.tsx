@@ -122,9 +122,9 @@ export function HomeClient() {
             </motion.div>
             <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="space-y-4">
               <p className="text-xs text-primary uppercase tracking-[0.3em]">Nossa história</p>
-              <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight">Tradição em cada ponto</h2>
-              <p className="text-muted-foreground leading-relaxed">Na Primor, cada peça é resultado de horas de trabalho manual dedicado. Utilizamos couro legítimo de alta qualidade, selecionado com cuidado para garantir durabilidade e beleza que só melhoram com o tempo.</p>
-              <p className="text-muted-foreground leading-relaxed">Nossos artesãos combinam técnicas tradicionais com design contemporâneo, criando produtos atemporais que contam uma história única.</p>
+              <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight">Desde 1954 em Serra Negra — SP</h2>
+              <p className="text-muted-foreground leading-relaxed">Somos a fábrica de couro legítimo mais antiga de Serra Negra. Nossa trajetória é longínqua, prezando sempre em qualidade e durabilidade.</p>
+              <p className="text-muted-foreground leading-relaxed">As peças são feitas artesanalmente, alinhadas na excelência do material a designs modernos e estilosos. Referência regional, com três lojas no interior de SP e crescendo cada vez mais no online. Sejam bem-vindos!</p>
             </motion.div>
           </div>
         </div>
