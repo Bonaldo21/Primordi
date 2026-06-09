@@ -287,7 +287,7 @@ public class PagamentoService {
     }
 
     private String ultimoNome(String nome) {
-        if (nome == null || !nome.contains(" ")) return "";
+        if (nome == null || !nome.contains(" ")) return primeiroNome(nome);
         return nome.substring(nome.indexOf(" ") + 1);
     }
 }

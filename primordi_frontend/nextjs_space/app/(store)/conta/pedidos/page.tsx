@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Package, QrCode, FileText, ChevronDown, ChevronUp, Copy } from 'lucide-react';
+import { ArrowLeft, Package, QrCode, ChevronDown, ChevronUp, Copy, XCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { pedidosApi, pagamentosApi } from '@/lib/api';
 import { formatCurrency } from '@/lib/format';
@@ -63,10 +63,29 @@ function PagamentoPix({ pedidoId }: { pedidoId: number }) {
   );
 }
 
-function PedidoCard({ pedido }: { pedido: Pedido }) {
+const CANCELAVEIS: string[] = ['AGUARDANDO_PAGAMENTO', 'PAGAMENTO_APROVADO', 'EM_SEPARACAO'];
+
+function PedidoCard({ pedido, onCancelado }: { pedido: Pedido; onCancelado: (id: number) => void }) {
   const [aberto, setAberto] = useState(false);
+  const [cancelando, setCancelando] = useState(false);
+  const [confirmar, setConfirmar] = useState(false);
   const status = STATUS_LABEL[pedido.status] ?? { label: pedido.status, color: 'bg-gray-100 text-gray-700' };
   const aguardando = pedido.status === 'AGUARDANDO_PAGAMENTO';
+  const podeCancelar = CANCELAVEIS.includes(pedido.status);
+
+  const handleCancelar = async () => {
+    setCancelando(true);
+    try {
+      await pedidosApi.cancelar(pedido.id, 'Cancelado pelo cliente');
+      toast.success('Pedido cancelado com sucesso.');
+      onCancelado(pedido.id);
+    } catch {
+      toast.error('Não foi possível cancelar o pedido.');
+    } finally {
+      setCancelando(false);
+      setConfirmar(false);
+    }
+  };
 
   return (
     <motion.div
@@ -139,6 +158,36 @@ function PedidoCard({ pedido }: { pedido: Pedido }) {
           )}
 
           {aguardando && <PagamentoPix pedidoId={pedido.id} />}
+
+          {podeCancelar && !confirmar && (
+            <button
+              onClick={() => setConfirmar(true)}
+              className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 transition-colors"
+            >
+              <XCircle className="w-4 h-4" /> Cancelar pedido
+            </button>
+          )}
+
+          {confirmar && (
+            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-4 space-y-3">
+              <p className="text-sm font-medium text-red-800 dark:text-red-300">Tem certeza que deseja cancelar este pedido?</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCancelar}
+                  disabled={cancelando}
+                  className="flex-1 bg-red-600 text-white py-2 text-sm font-medium rounded hover:bg-red-700 transition-colors disabled:opacity-50"
+                >
+                  {cancelando ? 'Cancelando...' : 'Sim, cancelar'}
+                </button>
+                <button
+                  onClick={() => setConfirmar(false)}
+                  className="flex-1 bg-secondary text-secondary-foreground py-2 text-sm font-medium rounded hover:bg-accent transition-colors"
+                >
+                  Não, voltar
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </motion.div>
@@ -194,7 +243,13 @@ export default function MeusPedidosPage() {
       ) : (
         <div className="space-y-3">
           {pedidos.map((pedido) => (
-            <PedidoCard key={pedido.id} pedido={pedido} />
+            <PedidoCard
+              key={pedido.id}
+              pedido={pedido}
+              onCancelado={(id) => setPedidos((prev) =>
+                prev.map((p) => p.id === id ? { ...p, status: 'CANCELADO' as any } : p)
+              )}
+            />
           ))}
         </div>
       )}
