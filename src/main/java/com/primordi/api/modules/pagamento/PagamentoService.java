@@ -3,6 +3,7 @@ package com.primordi.api.modules.pagamento;
 import com.mercadopago.client.common.IdentificationRequest;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.payment.PaymentCreateRequest;
+import com.mercadopago.client.payment.PaymentPayerAddressRequest;
 import com.mercadopago.client.payment.PaymentPayerRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
@@ -169,8 +170,22 @@ public class PagamentoService {
     // =====================================================
 
     private PagamentoResponse criarBoleto(Pedido pedido, CriarPagamentoRequest dto) {
+        var endereco = pedido.getEnderecoEntrega();
+        if (endereco == null) {
+            throw new BusinessException("Boleto não disponível para pedidos com retirada na loja. Use PIX ou cartão.");
+        }
+
         try {
             PaymentClient client = new PaymentClient();
+
+            PaymentPayerAddressRequest payerAddress = PaymentPayerAddressRequest.builder()
+                    .zipCode(endereco.getCep().replaceAll("\\D", ""))
+                    .streetName(endereco.getLogradouro())
+                    .streetNumber(endereco.getNumero())
+                    .neighborhood(endereco.getBairro())
+                    .city(endereco.getCidade())
+                    .federalUnit(endereco.getEstado())
+                    .build();
 
             PaymentCreateRequest request = PaymentCreateRequest.builder()
                     .transactionAmount(pedido.getTotal())
@@ -184,6 +199,7 @@ public class PagamentoService {
                                     .type("CPF")
                                     .number(dto.getPagadorCpf())
                                     .build())
+                            .address(payerAddress)
                             .build())
                     .notificationUrl(notificationUrlValida())
                     .build();
