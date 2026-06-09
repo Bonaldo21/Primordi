@@ -36,6 +36,7 @@ public class EnderecoMapper {
     }
 
     public EnderecoResponse toResponse(Endereco entity) {
+        if (entity == null) return null;
         return new EnderecoResponse(
                 entity.getId(),
                 entity.getApelido(),
