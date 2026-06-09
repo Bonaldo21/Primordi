@@ -38,7 +38,7 @@ export function StoreFooter() {
                 (19) 99126-7718
               </a>
               <a
-                href="https://instagram.com/primoacessorios"
+                href="https://instagram.com/primoracessorios"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
