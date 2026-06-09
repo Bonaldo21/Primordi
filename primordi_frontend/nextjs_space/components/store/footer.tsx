@@ -25,7 +25,7 @@ export function StoreFooter() {
           <div>
             <h4 className="text-sm font-medium uppercase tracking-wider mb-3">Contato</h4>
             <div className="flex flex-col gap-2">
-              <p className="text-sm text-muted-foreground">contato@primor.com.br</p>
+              <p className="text-sm text-muted-foreground">lojasprimor@gmail.com</p>
               <a
                 href="https://wa.me/5519991267718"
                 target="_blank"

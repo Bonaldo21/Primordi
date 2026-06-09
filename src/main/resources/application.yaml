@@ -70,8 +70,8 @@ springdoc:
 # Mercado Pago
 # ===========================================
 mercadopago:
-  access-token: ${MP_ACCESS_TOKEN:APP_USR-68048578315510-060118-bb912b283ec76ee631d1ee41e15c3590-3438706958}
-  public-key: ${MP_PUBLIC_KEY:APP_USR-6f411413-55d9-4619-b2a1-7ee93bb66f4c}
+  access-token: ${MP_ACCESS_TOKEN}
+  public-key: ${MP_PUBLIC_KEY}
   webhook-secret: ${MP_WEBHOOK_SECRET:}
   notification-url: ${MP_NOTIFICATION_URL:}
   success-url: ${APP_FRONT_URL:http://localhost:3000}/pagamento/sucesso
