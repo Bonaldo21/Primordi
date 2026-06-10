@@ -11,6 +11,7 @@ public record PedidoResponse(
         Long id,
         String codigo,
         StatusPedido status,
+        ClienteResumo cliente,
         EnderecoResponse enderecoEntrega,
         List<PedidoItemResponse> itens,
         BigDecimal subtotal,
@@ -22,4 +23,6 @@ public record PedidoResponse(
         LocalDateTime criadoEm,
         LocalDateTime canceladoEm,
         String motivoCancelamento
-) {}
+) {
+    public record ClienteResumo(Long id, String nome, String email) {}
+}

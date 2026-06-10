@@ -41,7 +41,12 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     /**
      * Lista todos os pedidos (admin), com filtro opcional de status.
      */
-    Page<Pedido> findByStatus(StatusPedido status, Pageable pageable);
+    @Query("SELECT p FROM Pedido p JOIN FETCH p.cliente WHERE p.status = :status")
+    Page<Pedido> findByStatusWithCliente(@Param("status") StatusPedido status, Pageable pageable);
+
+    @Query(value = "SELECT p FROM Pedido p JOIN FETCH p.cliente",
+           countQuery = "SELECT COUNT(p) FROM Pedido p")
+    Page<Pedido> findAllWithCliente(Pageable pageable);
 
     /**
      * Lista pedidos por período (relatórios).

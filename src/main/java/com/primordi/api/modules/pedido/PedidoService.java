@@ -195,9 +195,9 @@ public class PedidoService {
 
     public Page<PedidoResponse> listarTodos(StatusPedido status, Pageable pageable) {
         if (status != null) {
-            return repository.findByStatus(status, pageable).map(mapper::toResponse);
+            return repository.findByStatusWithCliente(status, pageable).map(mapper::toResponse);
         }
-        return repository.findAll(pageable).map(mapper::toResponse);
+        return repository.findAllWithCliente(pageable).map(mapper::toResponse);
     }
 
     // ========== GERAÇÃO DE CÓDIGO ==========

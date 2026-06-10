@@ -32,10 +32,18 @@ public class PedidoMapper {
                 .map(this::toItemResponse)
                 .toList();
 
+        PedidoResponse.ClienteResumo clienteResumo = pedido.getCliente() != null
+                ? new PedidoResponse.ClienteResumo(
+                        pedido.getCliente().getId(),
+                        pedido.getCliente().getNome(),
+                        pedido.getCliente().getEmail())
+                : null;
+
         return new PedidoResponse(
                 pedido.getId(),
                 pedido.getCodigo(),
                 pedido.getStatus(),
+                clienteResumo,
                 enderecoMapper.toResponse(pedido.getEnderecoEntrega()),
                 itens,
                 pedido.getSubtotal(),
