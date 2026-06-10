@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Plus, Trash2, Package, X, Pencil, ToggleLeft, ToggleRight, ImagePlus, Star } from 'lucide-react';
+import { Plus, Trash2, Package, X, Pencil, ToggleLeft, ToggleRight, ImagePlus, Star, Search } from 'lucide-react';
 import { produtosApi, categoriasApi, arquivosApi } from '@/lib/api';
 import { sampleProducts, sampleCategories } from '@/lib/sample-data';
 import { formatCurrency, getProdutoImagem } from '@/lib/format';
@@ -56,6 +56,7 @@ export default function AdminProdutosPage() {
   // múltiplas imagens: cada item pode ser arquivo ou URL
   const [novasImagens, setNovasImagens] = useState<{ arquivo: File | null; url: string; principal: boolean }[]>([]);
   const [uploadando, setUploadando] = useState(false);
+  const [busca, setBusca] = useState('');
 
   useEffect(() => { load(); }, []);
 
@@ -203,6 +204,17 @@ export default function AdminProdutosPage() {
         </button>
       </div>
 
+      <div className="relative mb-4 max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+        <input
+          type="text"
+          placeholder="Buscar produto..."
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          className="w-full pl-9 pr-4 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+        />
+      </div>
+
       {loading ? <p className="text-muted-foreground">Carregando...</p> : (
         <div className="bg-card rounded-lg overflow-hidden" style={{ boxShadow: 'var(--shadow-sm)' }}>
           <div className="overflow-x-auto">
@@ -218,7 +230,11 @@ export default function AdminProdutosPage() {
                 </tr>
               </thead>
               <tbody>
-                {produtos.map((p) => {
+                {produtos.filter((p) => {
+                  if (!busca.trim()) return true;
+                  const q = busca.toLowerCase();
+                  return p?.nome?.toLowerCase().includes(q) || (p as any)?.sku?.toLowerCase().includes(q);
+                }).map((p) => {
                   const ativo = (p as any).ativo ?? true;
                   return (
                     <tr key={p?.id} className={`border-b border-border/50 hover:bg-secondary/20 ${!ativo ? 'opacity-50' : ''}`}>
