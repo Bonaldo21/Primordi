@@ -148,7 +148,6 @@ public class Pedido {
      * Verifica se o pedido ainda pode ser cancelado.
      */
     public boolean podeSerCancelado() {
-        return status == StatusPedido.AGUARDANDO_PAGAMENTO
-                || status == StatusPedido.PAGAMENTO_APROVADO;
+        return status == StatusPedido.AGUARDANDO_PAGAMENTO;
     }
 }

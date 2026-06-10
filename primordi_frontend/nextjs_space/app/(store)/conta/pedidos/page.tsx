@@ -63,7 +63,7 @@ function PagamentoPix({ pedidoId }: { pedidoId: number }) {
   );
 }
 
-const CANCELAVEIS: string[] = ['AGUARDANDO_PAGAMENTO', 'PAGAMENTO_APROVADO', 'EM_SEPARACAO'];
+const CANCELAVEIS: string[] = ['AGUARDANDO_PAGAMENTO'];
 
 function PedidoCard({ pedido, onCancelado }: { pedido: Pedido; onCancelado: (id: number) => void }) {
   const [aberto, setAberto] = useState(false);
