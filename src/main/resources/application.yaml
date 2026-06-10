@@ -49,7 +49,7 @@ primordi:
     expiration-ms: 3600000           # 1 hora
     refresh-expiration-ms: 604800000 # 7 dias
   email:
-    resend-api-key: ${RESEND_API_KEY}
+    resend-api-key: ${RESEND_API_KEY:}
     from: ${EMAIL_FROM:noreply@primorcouro.com.br}
     verificacao-expiracao-horas: 24
     frontend-url: ${APP_FRONT_URL:http://localhost:3000}
