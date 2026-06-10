@@ -2,6 +2,8 @@ package com.primordi.api.shared.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -31,10 +33,20 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, "Erro de validação", fields);
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
+        return build(HttpStatus.FORBIDDEN, "Acesso negado.", null);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Map<String, Object>> handleBadCredentials(BadCredentialsException ex) {
+        return build(HttpStatus.UNAUTHORIZED, "Email ou senha inválidos.", null);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
         ex.printStackTrace();
-        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno: " + ex.getMessage(), null);
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno no servidor.", null);
     }
 
     private ResponseEntity<Map<String, Object>> build(HttpStatus status, String message, Object details) {

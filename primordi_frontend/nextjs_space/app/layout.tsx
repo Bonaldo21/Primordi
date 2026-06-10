@@ -15,7 +15,13 @@ export const metadata = {
   openGraph: {
     title: 'Primor | Couro Artesanal',
     description: 'Produtos de couro artesanais feitos à mão com dedicação e qualidade excepcional.',
-    images: ['/og-image.png'],
+    images: ['https://primor.up.railway.app/og-image.png'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Primor | Couro Artesanal',
+    description: 'Produtos de couro artesanais feitos à mão com dedicação e qualidade excepcional.',
+    images: ['https://primor.up.railway.app/og-image.png'],
   },
 };
 

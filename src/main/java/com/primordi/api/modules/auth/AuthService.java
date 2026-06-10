@@ -7,12 +7,18 @@ import com.primordi.api.modules.cliente.ClienteRepository;
 import com.primordi.api.modules.cliente.ClienteRole;
 import com.primordi.api.shared.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.Instant;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +29,36 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+
+    // Rate limiting: máx 5 tentativas falhas por IP em 15 minutos
+    private static final int MAX_TENTATIVAS = 5;
+    private static final long JANELA_MS = 15 * 60 * 1000L;
+
+    private record Tentativas(AtomicInteger count, Instant inicio) {}
+    private final ConcurrentHashMap<String, Tentativas> loginAttempts = new ConcurrentHashMap<>();
+
+    private void verificarRateLimit(String ip) {
+        loginAttempts.entrySet().removeIf(e ->
+                Instant.now().toEpochMilli() - e.getValue().inicio().toEpochMilli() > JANELA_MS);
+
+        Tentativas t = loginAttempts.get(ip);
+        if (t != null && t.count().get() >= MAX_TENTATIVAS) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Muitas tentativas de login. Aguarde 15 minutos.");
+        }
+    }
+
+    private void registrarFalha(String ip) {
+        loginAttempts.compute(ip, (k, v) -> {
+            if (v == null) return new Tentativas(new AtomicInteger(1), Instant.now());
+            v.count().incrementAndGet();
+            return v;
+        });
+    }
+
+    private void limparTentativas(String ip) {
+        loginAttempts.remove(ip);
+    }
 
     public AuthResponse register(RegisterRequest request) {
         if (clienteRepository.existsByEmail(request.email())) {
@@ -50,7 +86,8 @@ public class AuthService {
         return montarResposta(cliente);
     }
 
-    public AuthResponse login(LoginRequest request) {
+    public AuthResponse login(LoginRequest request, String ip) {
+        verificarRateLimit(ip);
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -59,9 +96,11 @@ public class AuthService {
                     )
             );
         } catch (BadCredentialsException e) {
+            registrarFalha(ip);
             throw new BusinessException("E-mail ou senha inválidos");
         }
 
+        limparTentativas(ip);
         Cliente cliente = clienteRepository.findByEmail(request.email().toLowerCase().trim())
                 .orElseThrow(() -> new BusinessException("Usuário não encontrado"));
 
