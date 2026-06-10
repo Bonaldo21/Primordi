@@ -49,7 +49,7 @@ export default function CheckoutPage() {
     const cpfResolvido = (user?.cpf ?? '').replace(/\D/g, '') || cpfInput.replace(/\D/g, '');
     const precisaDigitarCpf = !(user?.cpf ?? '').replace(/\D/g, '');
 
-    const totalComFrete = (subtotal ?? 0) + (modoEntrega === 'entrega' ? (freteSelecionado?.valor ?? 0) : 0);
+    const totalComFrete = Number(subtotal ?? 0) + (modoEntrega === 'entrega' ? Number(freteSelecionado?.valor ?? 0) : 0);
 
     useEffect(() => {
         if (!user) return;
