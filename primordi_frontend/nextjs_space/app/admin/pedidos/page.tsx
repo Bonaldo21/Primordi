@@ -23,7 +23,7 @@ export default function AdminPedidosPage() {
       const params: Record<string, string> = { size: '50', sort: 'criadoEm,desc' };
       if (filtroStatus) params.status = filtroStatus;
       const res = await pedidosApi.admin.listar(params);
-      setPedidos(res?.content ?? []);
+      setPedidos((res?.content ?? []).filter((p: any) => p?.status !== 'CANCELADO' && p?.status !== 'ESTORNADO'));
     } catch { setPedidos([]); } finally { setLoading(false); }
   }
 
