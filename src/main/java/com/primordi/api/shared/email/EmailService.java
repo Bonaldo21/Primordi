@@ -1,7 +1,6 @@
 package com.primordi.api.shared.email;
 
 import com.resend.Resend;
-import com.resend.core.exception.ResendException;
 import com.resend.services.emails.model.CreateEmailOptions;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,7 +56,7 @@ public class EmailService {
         try {
             resend.emails().send(options);
             log.info("E-mail de verificação enviado para {}", destinatario);
-        } catch (ResendException e) {
+        } catch (Exception e) {
             log.error("Falha ao enviar e-mail de verificação para {}: {}", destinatario, e.getMessage());
         }
     }
