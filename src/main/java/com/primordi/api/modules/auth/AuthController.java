@@ -44,4 +44,11 @@ public class AuthController {
     public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
         return ResponseEntity.ok(authService.refresh(request));
     }
+
+    @GetMapping("/verificar-email")
+    @Operation(summary = "Confirma o e-mail do cliente via token")
+    public ResponseEntity<Void> verificarEmail(@RequestParam String token) {
+        authService.verificarEmail(token);
+        return ResponseEntity.ok().build();
+    }
 }

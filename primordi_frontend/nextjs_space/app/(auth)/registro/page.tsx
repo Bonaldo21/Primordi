@@ -41,8 +41,8 @@ export default function RegistroPage() {
                 senha: form.senha,
                 cpf: form.cpf || undefined,
             });
-            toast.success('Conta criada com sucesso!');
-            router.replace('/');
+            toast.success('Conta criada! Verifique seu e-mail para ativar a conta.');
+            router.replace('/login');
         } catch (err: any) {
             toast.error(err?.message ?? 'Erro ao criar conta');
         } finally { setLoading(false); }

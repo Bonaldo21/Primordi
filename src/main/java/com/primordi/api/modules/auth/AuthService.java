@@ -5,8 +5,10 @@ import com.primordi.api.modules.auth.jwt.JwtService;
 import com.primordi.api.modules.cliente.Cliente;
 import com.primordi.api.modules.cliente.ClienteRepository;
 import com.primordi.api.modules.cliente.ClienteRole;
+import com.primordi.api.shared.email.EmailService;
 import com.primordi.api.shared.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -17,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -29,6 +33,11 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final TokenVerificacaoEmailRepository tokenRepository;
+    private final EmailService emailService;
+
+    @Value("${primordi.email.verificacao-expiracao-horas:24}")
+    private int expiracaoHoras;
 
     // Rate limiting: máx 5 tentativas falhas por IP em 15 minutos
     private static final int MAX_TENTATIVAS = 5;
@@ -82,8 +91,32 @@ public class AuthService {
                 .build();
 
         cliente = clienteRepository.save(cliente);
+        enviarTokenVerificacao(cliente);
 
         return montarResposta(cliente);
+    }
+
+    private void enviarTokenVerificacao(Cliente cliente) {
+        String token = UUID.randomUUID().toString();
+        tokenRepository.save(TokenVerificacaoEmail.builder()
+                .token(token)
+                .cliente(cliente)
+                .expiraEm(LocalDateTime.now().plusHours(expiracaoHoras))
+                .build());
+        emailService.enviarVerificacaoEmail(cliente.getEmail(), cliente.getNome(), token);
+    }
+
+    public void verificarEmail(String token) {
+        TokenVerificacaoEmail tv = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new BusinessException("Token inválido"));
+
+        if (tv.getUsado()) throw new BusinessException("Token já utilizado");
+        if (tv.getExpiraEm().isBefore(LocalDateTime.now())) throw new BusinessException("Token expirado");
+
+        tv.getCliente().setEmailVerificado(true);
+        clienteRepository.save(tv.getCliente());
+        tv.setUsado(true);
+        tokenRepository.save(tv);
     }
 
     public AuthResponse login(LoginRequest request, String ip) {

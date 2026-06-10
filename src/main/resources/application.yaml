@@ -48,6 +48,11 @@ primordi:
     secret: ${JWT_SECRET:troque-essa-chave-secreta-em-producao-com-pelo-menos-256-bits-seguros-aqui}
     expiration-ms: 3600000           # 1 hora
     refresh-expiration-ms: 604800000 # 7 dias
+  email:
+    resend-api-key: ${RESEND_API_KEY}
+    from: ${EMAIL_FROM:noreply@primorcouro.com.br}
+    verificacao-expiracao-horas: 24
+    frontend-url: ${APP_FRONT_URL:http://localhost:3000}
 
 
 
@@ -72,8 +77,8 @@ springdoc:
 mercadopago:
   access-token: ${MP_ACCESS_TOKEN}
   public-key: ${MP_PUBLIC_KEY}
-  webhook-secret: ${MP_WEBHOOK_SECRET:}
-  notification-url: ${MP_NOTIFICATION_URL:}
+  webhook-secret: ${MP_WEBHOOK_SECRET}
+  notification-url: ${MP_NOTIFICATION_URL}
   success-url: ${APP_FRONT_URL:http://localhost:3000}/pagamento/sucesso
   failure-url: ${APP_FRONT_URL:http://localhost:3000}/pagamento/falha
   pending-url: ${APP_FRONT_URL:http://localhost:3000}/pagamento/pendente
