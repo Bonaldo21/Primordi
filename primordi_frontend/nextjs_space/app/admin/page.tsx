@@ -19,7 +19,9 @@ export default function AdminDashboard() {
       const totalCats = cats.status === 'fulfilled' ? ((cats.value as any)?.length ?? 0) : 0;
       const totalPedidos = pedidos.status === 'fulfilled' ? (pedidos.value?.totalElements ?? 0) : 0;
       const receita = pedidos.status === 'fulfilled'
-        ? (pedidos.value?.content ?? []).reduce((sum: number, p: any) => sum + (p?.total ?? 0), 0)
+        ? (pedidos.value?.content ?? [])
+            .filter((p: any) => p?.status !== 'CANCELADO' && p?.status !== 'ESTORNADO')
+            .reduce((sum: number, p: any) => sum + Number(p?.total ?? 0), 0)
         : 0;
       setStats({ produtos: totalProds, categorias: totalCats, pedidos: totalPedidos, receita });
     }

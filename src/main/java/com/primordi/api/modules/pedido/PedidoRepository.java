@@ -21,6 +21,8 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
      */
     Page<Pedido> findByClienteIdOrderByCriadoEmDesc(Long clienteId, Pageable pageable);
 
+    Page<Pedido> findByClienteIdAndStatusNotOrderByCriadoEmDesc(Long clienteId, StatusPedido status, Pageable pageable);
+
     /**
      * Busca um pedido específico do cliente (segurança).
      */

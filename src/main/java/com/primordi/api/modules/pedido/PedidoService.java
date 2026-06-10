@@ -37,7 +37,7 @@ public class PedidoService {
     @Transactional(readOnly = true)
     public Page<PedidoResponse> listarMeusPedidos(Cliente cliente, Pageable pageable) {
         return repository
-                .findByClienteIdOrderByCriadoEmDesc(cliente.getId(), pageable)
+                .findByClienteIdAndStatusNotOrderByCriadoEmDesc(cliente.getId(), StatusPedido.CANCELADO, pageable)
                 .map(mapper::toResponse);
     }
 
