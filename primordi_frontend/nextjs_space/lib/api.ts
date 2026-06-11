@@ -59,8 +59,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     throw new Error(errorMsg);
   }
 
-  if (res.status === 204) return {} as T;
-  return res.json();
+  const text = await res.text();
+  if (!text) return {} as T;
+  return JSON.parse(text);
 }
 
 export async function requestFormData<T>(path: string, formData: FormData): Promise<T> {
