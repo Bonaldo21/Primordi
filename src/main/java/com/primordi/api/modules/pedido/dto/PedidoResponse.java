@@ -19,6 +19,8 @@ public record PedidoResponse(
         BigDecimal valorFrete,
         BigDecimal total,
         String cupomCodigo,
+        Boolean retiradaNaLoja,
+        String lojaRetirada,
         String observacoes,
         LocalDateTime criadoEm,
         LocalDateTime canceladoEm,

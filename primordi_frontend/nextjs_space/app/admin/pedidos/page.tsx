@@ -108,6 +108,9 @@ export default function AdminPedidosPage() {
                 <span className={`text-xs font-medium px-2 py-1 rounded ${getStatusColor(pedidoSelecionado?.status)}`}>{getStatusLabel(pedidoSelecionado?.status)}</span>
               </div>
               <div className="flex justify-between"><span className="text-muted-foreground">Total</span><span className="font-semibold">{formatCurrency(pedidoSelecionado?.total)}</span></div>
+              {(pedidoSelecionado as any)?.retiradaNaLoja && (
+                <div className="flex justify-between"><span className="text-muted-foreground">Retirada na loja</span><span className="font-medium">{(pedidoSelecionado as any)?.lojaRetirada ?? '—'}</span></div>
+              )}
               <div className="flex justify-between"><span className="text-muted-foreground">Data</span><span>{formatDateTime(pedidoSelecionado?.criadoEm)}</span></div>
               {(pedidoSelecionado as any)?.itens?.length > 0 && (
                 <div className="mt-4">

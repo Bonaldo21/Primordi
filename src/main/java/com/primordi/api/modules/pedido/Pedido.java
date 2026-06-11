@@ -46,6 +46,9 @@ public class Pedido {
     @Builder.Default
     private Boolean retiradaNaLoja = false;
 
+    @Column(name = "loja_retirada", length = 100)
+    private String lojaRetirada;
+
     @OneToMany(
             mappedBy = "pedido",
             cascade = CascadeType.ALL,

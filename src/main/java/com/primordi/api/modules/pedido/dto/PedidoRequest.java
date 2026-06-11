@@ -12,6 +12,8 @@ public record PedidoRequest(
 
         Boolean retiradaNaLoja,
 
+        String lojaRetirada,
+
         @NotEmpty(message = "O pedido deve ter pelo menos 1 item")
         @Valid
         List<PedidoItemRequest> itens,

@@ -168,6 +168,7 @@ export default function CheckoutPage() {
                 const pedido = await pedidosApi.create({
                     enderecoEntregaId: modoEntrega === 'entrega' ? enderecoId : undefined,
                     retiradaNaLoja: modoEntrega === 'retirada',
+                    lojaRetirada: modoEntrega === 'retirada' ? lojaRetirada : undefined,
                     itens: (items ?? []).map((i: CartItem) => ({
                         produtoId: i.produto.id,
                         quantidade: i.quantidade

@@ -82,6 +82,7 @@ public class PedidoService {
                 .cliente(cliente)
                 .enderecoEntrega(endereco)
                 .retiradaNaLoja(retirada)
+                .lojaRetirada(retirada ? dto.lojaRetirada() : null)
                 .status(StatusPedido.AGUARDANDO_PAGAMENTO)
                 .cupomCodigo(dto.cupomCodigo())
                 .observacoes(dto.observacoes())

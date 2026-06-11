@@ -51,6 +51,8 @@ public class PedidoMapper {
                 pedido.getValorFrete(),
                 pedido.getTotal(),
                 pedido.getCupomCodigo(),
+                pedido.getRetiradaNaLoja(),
+                pedido.getLojaRetirada(),
                 pedido.getObservacoes(),
                 pedido.getCriadoEm(),
                 pedido.getCanceladoEm(),
