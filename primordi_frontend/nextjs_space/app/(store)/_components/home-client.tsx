@@ -43,9 +43,7 @@ export function HomeClient() {
     <div>
       <section className="relative h-[70vh] sm:h-[80vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
-          <Image src="https://cdn.abacus.ai/images/7ea29d31-59dc-4105-95cc-b2fac5a0f2eb.png" alt="Produtos artesanais em couro Primor
-
-          " fill className="object-cover" priority />
+          <Image src="/hero-banner.jpeg" alt="Produtos artesanais em couro Primordi" fill className="object-cover object-top" priority />
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60" />
         </div>
         <div className="relative z-10 text-center px-4 max-w-[800px] mx-auto">
