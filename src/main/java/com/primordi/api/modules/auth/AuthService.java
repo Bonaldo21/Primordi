@@ -34,6 +34,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final TokenVerificacaoEmailRepository tokenRepository;
+    private final TokenResetSenhaRepository resetTokenRepository;
     private final EmailService emailService;
 
     @Value("${primordi.email.verificacao-expiracao-horas:24}")
@@ -142,6 +143,32 @@ public class AuthService {
         }
 
         return montarResposta(cliente);
+    }
+
+    public void esqueciSenha(String email) {
+        // Sempre retorna sucesso para não revelar se o e-mail existe
+        clienteRepository.findByEmail(email.toLowerCase().trim()).ifPresent(cliente -> {
+            String token = UUID.randomUUID().toString();
+            resetTokenRepository.save(TokenResetSenha.builder()
+                    .token(token)
+                    .cliente(cliente)
+                    .expiraEm(LocalDateTime.now().plusHours(1))
+                    .build());
+            emailService.enviarResetSenha(cliente.getEmail(), cliente.getNome(), token);
+        });
+    }
+
+    public void redefinirSenha(String token, String novaSenha) {
+        TokenResetSenha tr = resetTokenRepository.findByToken(token)
+                .orElseThrow(() -> new BusinessException("Link inválido ou expirado"));
+
+        if (tr.getUsado()) throw new BusinessException("Este link já foi utilizado");
+        if (tr.getExpiraEm().isBefore(LocalDateTime.now())) throw new BusinessException("Link expirado. Solicite um novo.");
+
+        tr.getCliente().setSenha(passwordEncoder.encode(novaSenha));
+        clienteRepository.save(tr.getCliente());
+        tr.setUsado(true);
+        resetTokenRepository.save(tr);
     }
 
     public AuthResponse refresh(RefreshTokenRequest request) {

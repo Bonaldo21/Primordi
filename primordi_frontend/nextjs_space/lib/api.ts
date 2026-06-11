@@ -99,6 +99,10 @@ export const authApi = {
     request<AuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
   refresh: (refreshToken: string) =>
     request<AuthResponse>('/auth/refresh', { method: 'POST', body: JSON.stringify({ refreshToken }) }),
+  esqueciSenha: (email: string) =>
+    request<void>('/auth/esqueci-senha', { method: 'POST', body: JSON.stringify({ email }) }),
+  redefinirSenha: (token: string, novaSenha: string) =>
+    request<void>('/auth/redefinir-senha', { method: 'POST', body: JSON.stringify({ token, novaSenha }) }),
 };
 
 // Categorias

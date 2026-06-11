@@ -1,0 +1,9 @@
+CREATE TABLE tokens_reset_senha (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    cliente_id BIGINT NOT NULL,
+    expira_em DATETIME NOT NULL,
+    usado BOOLEAN NOT NULL DEFAULT FALSE,
+    criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_reset_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+);

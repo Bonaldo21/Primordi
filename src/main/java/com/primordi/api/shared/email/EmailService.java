@@ -60,4 +60,42 @@ public class EmailService {
             log.error("Falha ao enviar e-mail de verificação para {}: {}", destinatario, e.getMessage());
         }
     }
+
+    public void enviarResetSenha(String destinatario, String nome, String token) {
+        if (resend == null) {
+            log.warn("RESEND_API_KEY não configurado — e-mail de reset não enviado para {}", destinatario);
+            return;
+        }
+        String link = frontendUrl + "/redefinir-senha?token=" + token;
+
+        String html = """
+                <div style="font-family:sans-serif;max-width:520px;margin:auto">
+                  <h2 style="color:#4a2c0a">Redefinir senha — Primordi Couro</h2>
+                  <p>Olá, <strong>%s</strong>!</p>
+                  <p>Recebemos uma solicitação para redefinir a senha da sua conta. Clique no botão abaixo. O link é válido por 1 hora.</p>
+                  <a href="%s"
+                     style="display:inline-block;padding:12px 24px;background:#4a2c0a;color:#fff;
+                            text-decoration:none;border-radius:6px;font-weight:bold">
+                    Redefinir senha
+                  </a>
+                  <p style="margin-top:24px;color:#888;font-size:13px">
+                    Se você não solicitou a redefinição de senha, ignore este e-mail.
+                  </p>
+                </div>
+                """.formatted(nome, link);
+
+        CreateEmailOptions options = CreateEmailOptions.builder()
+                .from(from)
+                .to(destinatario)
+                .subject("Redefinir senha — Primordi Couro")
+                .html(html)
+                .build();
+
+        try {
+            resend.emails().send(options);
+            log.info("E-mail de reset de senha enviado para {}", destinatario);
+        } catch (Exception e) {
+            log.error("Falha ao enviar e-mail de reset para {}: {}", destinatario, e.getMessage());
+        }
+    }
 }

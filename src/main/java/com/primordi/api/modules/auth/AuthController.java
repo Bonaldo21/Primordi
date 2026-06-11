@@ -51,4 +51,18 @@ public class AuthController {
         authService.verificarEmail(token);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/esqueci-senha")
+    @Operation(summary = "Envia e-mail para redefinição de senha")
+    public ResponseEntity<Void> esqueciSenha(@Valid @RequestBody EsqueciSenhaRequest request) {
+        authService.esqueciSenha(request.email());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/redefinir-senha")
+    @Operation(summary = "Redefine a senha usando o token recebido por e-mail")
+    public ResponseEntity<Void> redefinirSenha(@Valid @RequestBody RedefinirSenhaRequest request) {
+        authService.redefinirSenha(request.token(), request.novaSenha());
+        return ResponseEntity.ok().build();
+    }
 }

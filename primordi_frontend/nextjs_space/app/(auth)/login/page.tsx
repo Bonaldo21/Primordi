@@ -49,6 +49,9 @@ export default function LoginPage() {
               <input type="password" required value={senha} onChange={(e: any) => setSenha(e?.target?.value ?? '')} placeholder="••••••••" className="w-full pl-10 pr-4 py-2.5 text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-1 focus:ring-ring" />
             </div>
           </div>
+          <div className="flex justify-end">
+            <Link href="/esqueci-senha" className="text-xs text-muted-foreground hover:text-primary">Esqueci minha senha</Link>
+          </div>
           <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-2.5 text-sm font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50">
             <LogIn className="w-4 h-4" /> {loading ? 'Entrando...' : 'Entrar'}
           </button>
