@@ -43,6 +43,13 @@ export default function CheckoutPage() {
     const [freteSelecionado, setFreteSelecionado] = useState<FreteOpcao | null>(null);
     const [calculandoFrete, setCalculandoFrete] = useState(false);
     const [modoEntrega, setModoEntrega] = useState<'entrega' | 'retirada'>('entrega');
+    const [lojaRetirada, setLojaRetirada] = useState<string>('');
+
+    const LOJAS = [
+        { id: 'serra-negra', nome: 'Serra Negra', endereco: 'Rua Cel. Pedro Penteado, 61' },
+        { id: 'aguas-de-lindoia', nome: 'Águas de Lindóia', endereco: 'Rua São Paulo, 336 — Loja 1' },
+        { id: 'pedreira', nome: 'Pedreira', endereco: 'Rua Cel. João Pedro, 16 A' },
+    ];
 
     const criandoPedido = useRef(false);
 
@@ -96,6 +103,10 @@ export default function CheckoutPage() {
 
     const handleConfirmarEndereco = async () => {
         if (modoEntrega === 'retirada') {
+            if (!lojaRetirada) {
+                toast.error('Selecione a loja para retirada');
+                return;
+            }
             setStep(2);
             return;
         }
@@ -293,14 +304,18 @@ export default function CheckoutPage() {
                             </div>
 
                             {modoEntrega === 'retirada' ? (
-                                <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4 text-sm text-green-800 dark:text-green-300 space-y-3">
-                                    <p className="font-medium flex items-center gap-2"><Store className="w-4 h-4" /> Retirada na Loja — Grátis</p>
-                                    <p className="text-muted-foreground">Escolha a unidade mais próxima. Entraremos em contato para combinar o horário após a confirmação do pagamento.</p>
-                                    <ul className="space-y-1 text-muted-foreground">
-                                        <li><span className="font-medium text-green-800 dark:text-green-300">Serra Negra:</span> Rua Cel. Pedro Penteado, 61</li>
-                                        <li><span className="font-medium text-green-800 dark:text-green-300">Águas de Lindóia:</span> Rua São Paulo, 336 — Loja 1</li>
-                                        <li><span className="font-medium text-green-800 dark:text-green-300">Pedreira:</span> Rua Cel. João Pedro, 16 A</li>
-                                    </ul>
+                                <div className="space-y-3">
+                                    <p className="font-medium flex items-center gap-2 text-sm"><Store className="w-4 h-4" /> Escolha a loja para retirada — Grátis</p>
+                                    {LOJAS.map((loja) => (
+                                        <label key={loja.id} className={`flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${lojaRetirada === loja.id ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}`}>
+                                            <input type="radio" name="loja" value={loja.id} checked={lojaRetirada === loja.id} onChange={() => setLojaRetirada(loja.id)} className="mt-1" />
+                                            <div className="text-sm">
+                                                <p className="font-medium">{loja.nome}</p>
+                                                <p className="text-muted-foreground">{loja.endereco}</p>
+                                            </div>
+                                        </label>
+                                    ))}
+                                    <p className="text-xs text-muted-foreground">Entraremos em contato para combinar o horário após a confirmação do pagamento.</p>
                                 </div>
                             ) : (
                                 <>
@@ -328,7 +343,7 @@ export default function CheckoutPage() {
                             )}
                                 </>
                             )}
-                            <button onClick={handleConfirmarEndereco} disabled={(modoEntrega === 'entrega' && !enderecoId) || calculandoFrete}
+                            <button onClick={handleConfirmarEndereco} disabled={(modoEntrega === 'entrega' && !enderecoId) || (modoEntrega === 'retirada' && !lojaRetirada) || calculandoFrete}
                                     className="w-full bg-primary text-primary-foreground py-3 text-sm font-medium rounded hover:opacity-90 transition-opacity disabled:opacity-40 mt-2">
                                 {calculandoFrete ? 'Calculando frete...' : 'Continuar para Pagamento'}
                             </button>
