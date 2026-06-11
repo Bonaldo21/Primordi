@@ -1,8 +1,7 @@
 package com.primordi.api.modules.frete.service;
 
-import com.primordi.api.modules.frete.domain.TipoServico;
-import com.primordi.api.modules.frete.domain.Transportadora;
 import com.primordi.api.modules.frete.dto.*;
+import com.primordi.api.modules.frete.strategy.MelhorEnvioStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +18,7 @@ import java.util.List;
 public class FreteSimuladorService {
 
     private final ViaCepService viaCepService;
+    private final MelhorEnvioStrategy melhorEnvioStrategy;
 
     @Value("${frete.fixo.valor-base:25.00}")
     private BigDecimal valorBase;
@@ -26,67 +26,74 @@ public class FreteSimuladorService {
     @Value("${frete.fixo.valor-por-kg:5.00}")
     private BigDecimal valorPorKg;
 
-    /**
-     * Simula frete com base no CEP e peso, consultando ViaCEP para fator regional.
-     * Endpoint público — não exige autenticação.
-     */
+    // Dimensões padrão para artigos de couro (bolsas, carteiras, cintos)
+    private static final int ALTURA_CM    = 5;
+    private static final int LARGURA_CM   = 15;
+    private static final int COMPRIMENTO_CM = 20;
+
     public SimulacaoFreteResponse simular(SimularFreteRequest request) {
         String cepLimpo = request.getCepDestino().replaceAll("\\D", "");
-        BigDecimal peso = request.getPesoKg() != null ? request.getPesoKg() : BigDecimal.ONE;
+        BigDecimal peso = request.getPesoKg() != null ? request.getPesoKg() : BigDecimal.valueOf(0.5);
 
         ViaCepService.ViaCepResponse cepInfo = viaCepService.consultar(cepLimpo);
+        String cidade = cepInfo != null ? cepInfo.getLocalidade() : "Não identificada";
+        String estado = cepInfo != null ? cepInfo.getUf() : null;
+        String regiao = viaCepService.nomeRegiao(estado);
 
-        String cidade  = cepInfo != null ? cepInfo.getLocalidade() : "Não identificada";
-        String estado  = cepInfo != null ? cepInfo.getUf() : null;
-        String regiao  = viaCepService.nomeRegiao(estado);
-        double fator   = viaCepService.fatorRegional(estado);
+        List<OpcaoFreteResponse> opcoes;
 
-        BigDecimal valorBase = calcularBase(peso, fator);
+        if (melhorEnvioStrategy.isHabilitada()) {
+            try {
+                CalcularFreteRequest calcRequest = CalcularFreteRequest.builder()
+                        .cepDestino(cepLimpo)
+                        .pesoKg(peso)
+                        .alturaCm(ALTURA_CM)
+                        .larguraCm(LARGURA_CM)
+                        .comprimentoCm(COMPRIMENTO_CM)
+                        .valorDeclarado(request.getValorDeclarado())
+                        .build();
 
-        OpcaoFreteResponse economico = OpcaoFreteResponse.builder()
-                .transportadora(Transportadora.FRETE_FIXO)
-                .tipoServico(TipoServico.ECONOMICO)
-                .nomeServico("Entrega Econômica")
-                .valor(valorBase)
-                .prazoDias(prazoBase(estado))
-                .previsaoEntrega(LocalDate.now().plusDays(prazoBase(estado)))
-                .observacao("Simulação — prazo pode variar conforme disponibilidade")
-                .build();
-
-        OpcaoFreteResponse expresso = OpcaoFreteResponse.builder()
-                .transportadora(Transportadora.FRETE_FIXO)
-                .tipoServico(TipoServico.EXPRESSO)
-                .nomeServico("Entrega Expressa")
-                .valor(valorBase.multiply(BigDecimal.valueOf(1.8)).setScale(2, RoundingMode.HALF_UP))
-                .prazoDias(2)
-                .previsaoEntrega(LocalDate.now().plusDays(2))
-                .observacao("Entrega prioritária")
-                .build();
-
-        OpcaoFreteResponse agendada = OpcaoFreteResponse.builder()
-                .transportadora(Transportadora.FRETE_FIXO)
-                .tipoServico(TipoServico.AGENDADO)
-                .nomeServico("Entrega Agendada")
-                .valor(valorBase.multiply(BigDecimal.valueOf(1.3)).setScale(2, RoundingMode.HALF_UP))
-                .prazoDias(prazoBase(estado) - 1)
-                .previsaoEntrega(LocalDate.now().plusDays(prazoBase(estado) - 1))
-                .observacao("Escolha o dia e horário da entrega")
-                .build();
-
-        log.info("Simulação frete CEP={} UF={} fator={} valorBase={}", cepLimpo, estado, fator, valorBase);
+                opcoes = melhorEnvioStrategy.calcular(calcRequest);
+                log.info("[Simulador] Melhor Envio retornou {} opções para CEP {}", opcoes.size(), cepLimpo);
+            } catch (Exception e) {
+                log.warn("[Simulador] Falha no Melhor Envio, usando frete fixo: {}", e.getMessage());
+                opcoes = calcularFreteFixo(peso, estado);
+            }
+        } else {
+            opcoes = calcularFreteFixo(peso, estado);
+        }
 
         return SimulacaoFreteResponse.builder()
                 .cepDestino(cepLimpo)
                 .cidade(cidade)
                 .estado(estado != null ? estado : "ND")
                 .regiao(regiao)
-                .opcoes(List.of(economico, agendada, expresso))
+                .opcoes(opcoes)
                 .build();
     }
 
-    private BigDecimal calcularBase(BigDecimal peso, double fatorRegional) {
-        BigDecimal base = valorBase.add(valorPorKg.multiply(peso));
-        return base.multiply(BigDecimal.valueOf(fatorRegional)).setScale(2, RoundingMode.HALF_UP);
+    private List<OpcaoFreteResponse> calcularFreteFixo(BigDecimal peso, String estado) {
+        double fator = viaCepService.fatorRegional(estado);
+        BigDecimal base = valorBase.add(valorPorKg.multiply(peso))
+                .multiply(BigDecimal.valueOf(fator))
+                .setScale(2, RoundingMode.HALF_UP);
+        int prazo = prazoBase(estado);
+
+        return List.of(
+                OpcaoFreteResponse.builder()
+                        .nomeServico("Entrega Econômica")
+                        .valor(base)
+                        .prazoDias(prazo)
+                        .previsaoEntrega(LocalDate.now().plusDays(prazo))
+                        .observacao("Prazo estimado")
+                        .build(),
+                OpcaoFreteResponse.builder()
+                        .nomeServico("Entrega Expressa")
+                        .valor(base.multiply(BigDecimal.valueOf(1.8)).setScale(2, RoundingMode.HALF_UP))
+                        .prazoDias(2)
+                        .previsaoEntrega(LocalDate.now().plusDays(2))
+                        .build()
+        );
     }
 
     private int prazoBase(String uf) {

@@ -101,9 +101,10 @@ frete:
     api-url: https://api.correios.com.br
 
   melhor-envio:
-    habilitado: false
+    habilitado: ${MELHOR_ENVIO_HABILITADO:true}
     token: ${MELHOR_ENVIO_TOKEN:}
-    sandbox: true
+    sandbox: ${MELHOR_ENVIO_SANDBOX:false}
+    cep-origem: ${MELHOR_ENVIO_CEP_ORIGEM:13932016}
 
 # ===========================================
 # Social Login
