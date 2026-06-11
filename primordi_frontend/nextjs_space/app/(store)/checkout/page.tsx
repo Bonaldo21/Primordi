@@ -293,9 +293,14 @@ export default function CheckoutPage() {
                             </div>
 
                             {modoEntrega === 'retirada' ? (
-                                <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4 text-sm text-green-800 dark:text-green-300 space-y-1">
+                                <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4 text-sm text-green-800 dark:text-green-300 space-y-3">
                                     <p className="font-medium flex items-center gap-2"><Store className="w-4 h-4" /> Retirada na Loja — Grátis</p>
-                                    <p className="text-muted-foreground">Você retira o pedido diretamente em nossa loja. Entraremos em contato para combinar o horário após a confirmação do pagamento.</p>
+                                    <p className="text-muted-foreground">Escolha a unidade mais próxima. Entraremos em contato para combinar o horário após a confirmação do pagamento.</p>
+                                    <ul className="space-y-1 text-muted-foreground">
+                                        <li><span className="font-medium text-green-800 dark:text-green-300">Serra Negra:</span> Rua Cel. Pedro Penteado, 61</li>
+                                        <li><span className="font-medium text-green-800 dark:text-green-300">Águas de Lindóia:</span> Rua São Paulo, 336 — Loja 1</li>
+                                        <li><span className="font-medium text-green-800 dark:text-green-300">Pedreira:</span> Rua Cel. João Pedro, 16 A</li>
+                                    </ul>
                                 </div>
                             ) : (
                                 <>
