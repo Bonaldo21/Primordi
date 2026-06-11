@@ -14,13 +14,17 @@ public class EmailService {
     private final String from;
     private final String frontendUrl;
 
+    private final String backendUrl;
+
     public EmailService(
             @Value("${primordi.email.resend-api-key:}") String apiKey,
             @Value("${primordi.email.from}") String from,
-            @Value("${primordi.email.frontend-url}") String frontendUrl) {
+            @Value("${primordi.email.frontend-url}") String frontendUrl,
+            @Value("${primordi.email.backend-url:https://primordi-production.up.railway.app}") String backendUrl) {
         this.resend = (apiKey != null && !apiKey.isBlank()) ? new Resend(apiKey) : null;
         this.from = from;
         this.frontendUrl = frontendUrl;
+        this.backendUrl = backendUrl;
     }
 
     public void enviarVerificacaoEmail(String destinatario, String nome, String token) {
@@ -28,7 +32,7 @@ public class EmailService {
             log.warn("RESEND_API_KEY não configurado — e-mail de verificação não enviado para {}", destinatario);
             return;
         }
-        String link = frontendUrl + "/verificar-email?token=" + token;
+        String link = backendUrl + "/api/auth/verificar-email?token=" + token;
 
         String html = """
                 <div style="font-family:sans-serif;max-width:520px;margin:auto">
