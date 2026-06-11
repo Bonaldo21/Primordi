@@ -41,9 +41,9 @@ export function HomeClient() {
 
   return (
     <div>
-      <section className="relative h-[70vh] sm:h-[80vh] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[70vh] sm:h-[80vh] flex items-center justify-center overflow-hidden bg-[#d6cfc8]">
         <div className="absolute inset-0">
-          <Image src="/hero-banner.jpeg" alt="Produtos artesanais em couro Primordi" fill className="object-cover object-[center_45%]" priority />
+          <Image src="/hero-banner.jpeg" alt="Produtos artesanais em couro Primordi" fill className="object-cover object-[center_45%] md:object-contain md:object-center" priority />
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60" />
         </div>
         <div className="relative z-10 text-center px-4 max-w-[800px] mx-auto">
