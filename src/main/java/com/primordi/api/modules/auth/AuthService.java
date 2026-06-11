@@ -137,6 +137,10 @@ public class AuthService {
         Cliente cliente = clienteRepository.findByEmail(request.email().toLowerCase().trim())
                 .orElseThrow(() -> new BusinessException("Usuário não encontrado"));
 
+        if (!Boolean.TRUE.equals(cliente.getEmailVerificado())) {
+            throw new BusinessException("E-mail não verificado. Verifique sua caixa de entrada e confirme seu e-mail antes de entrar.");
+        }
+
         return montarResposta(cliente);
     }
 
