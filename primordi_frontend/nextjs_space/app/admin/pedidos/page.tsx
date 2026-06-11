@@ -108,8 +108,15 @@ export default function AdminPedidosPage() {
                 <span className={`text-xs font-medium px-2 py-1 rounded ${getStatusColor(pedidoSelecionado?.status)}`}>{getStatusLabel(pedidoSelecionado?.status)}</span>
               </div>
               <div className="flex justify-between"><span className="text-muted-foreground">Total</span><span className="font-semibold">{formatCurrency(pedidoSelecionado?.total)}</span></div>
-              {(pedidoSelecionado as any)?.retiradaNaLoja && (
+              {(pedidoSelecionado as any)?.retiradaNaLoja ? (
                 <div className="flex justify-between"><span className="text-muted-foreground">Retirada na loja</span><span className="font-medium">{(pedidoSelecionado as any)?.lojaRetirada ?? '—'}</span></div>
+              ) : (pedidoSelecionado as any)?.enderecoEntrega && (
+                <div className="flex flex-col gap-1">
+                  <span className="text-muted-foreground">Endereço de entrega</span>
+                  <span className="font-medium">{(pedidoSelecionado as any).enderecoEntrega.logradouro}, {(pedidoSelecionado as any).enderecoEntrega.numero}{(pedidoSelecionado as any).enderecoEntrega.complemento ? ` — ${(pedidoSelecionado as any).enderecoEntrega.complemento}` : ''}</span>
+                  <span className="text-muted-foreground">{(pedidoSelecionado as any).enderecoEntrega.bairro} — {(pedidoSelecionado as any).enderecoEntrega.cidade}/{(pedidoSelecionado as any).enderecoEntrega.estado}</span>
+                  <span className="text-muted-foreground">CEP: {(pedidoSelecionado as any).enderecoEntrega.cep}</span>
+                </div>
               )}
               <div className="flex justify-between"><span className="text-muted-foreground">Data</span><span>{formatDateTime(pedidoSelecionado?.criadoEm)}</span></div>
               {(pedidoSelecionado as any)?.itens?.length > 0 && (
