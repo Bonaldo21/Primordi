@@ -145,6 +145,13 @@ public class AuthService {
         return montarResposta(cliente);
     }
 
+    public void reenviarVerificacao(String email) {
+        clienteRepository.findByEmail(email.toLowerCase().trim()).ifPresent(cliente -> {
+            if (Boolean.TRUE.equals(cliente.getEmailVerificado())) return;
+            enviarTokenVerificacao(cliente);
+        });
+    }
+
     public void esqueciSenha(String email) {
         // Sempre retorna sucesso para não revelar se o e-mail existe
         clienteRepository.findByEmail(email.toLowerCase().trim()).ifPresent(cliente -> {

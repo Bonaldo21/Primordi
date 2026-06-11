@@ -52,6 +52,13 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/reenviar-verificacao")
+    @Operation(summary = "Reenvia e-mail de verificação")
+    public ResponseEntity<Void> reenviarVerificacao(@RequestBody java.util.Map<String, String> body) {
+        authService.reenviarVerificacao(body.get("email"));
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/esqueci-senha")
     @Operation(summary = "Envia e-mail para redefinição de senha")
     public ResponseEntity<Void> esqueciSenha(@Valid @RequestBody EsqueciSenhaRequest request) {
