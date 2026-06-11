@@ -103,9 +103,7 @@ public class PagamentoService {
             return PagamentoResponse.fromEntity(pagamentoRepository.save(pagamento));
 
         } catch (MPApiException e) {
-            String body = e.getApiResponse() != null ? e.getApiResponse().getContent() : "sem body";
-            log.error("Erro MP ao criar PIX: status={} body={}", e.getStatusCode(), body);
-            throw new BusinessException("Erro ao processar PIX [" + e.getStatusCode() + "]: " + body);
+            throw traduzirErroPagamento(e, "PIX");
         } catch (MPException e) {
             log.error("Erro ao criar PIX: {}", e.getMessage());
             throw new BusinessException("Erro ao processar PIX: " + e.getMessage());
@@ -156,9 +154,7 @@ public class PagamentoService {
             return PagamentoResponse.fromEntity(salvo);
 
         } catch (MPApiException e) {
-            String body = e.getApiResponse() != null ? e.getApiResponse().getContent() : "sem body";
-            log.error("Erro MP ao criar cartão: status={} body={}", e.getStatusCode(), body);
-            throw new BusinessException("Erro ao processar cartão [" + e.getStatusCode() + "]: " + body);
+            throw traduzirErroPagamento(e, "cartão");
         } catch (MPException e) {
             log.error("Erro ao criar pagamento cartão: {}", e.getMessage());
             throw new BusinessException("Erro ao processar cartão: " + e.getMessage());
@@ -219,9 +215,7 @@ public class PagamentoService {
             return PagamentoResponse.fromEntity(pagamentoRepository.save(pagamento));
 
         } catch (MPApiException e) {
-            String body = e.getApiResponse() != null ? e.getApiResponse().getContent() : "sem body";
-            log.error("Erro MP ao criar boleto: status={} body={}", e.getStatusCode(), body);
-            throw new BusinessException("Erro ao processar boleto [" + e.getStatusCode() + "]: " + body);
+            throw traduzirErroPagamento(e, "boleto");
         } catch (MPException e) {
             log.error("Erro ao criar boleto: {}", e.getMessage());
             throw new BusinessException("Erro ao processar boleto: " + e.getMessage());
@@ -295,6 +289,15 @@ public class PagamentoService {
         if (url == null || url.isBlank()) return null;
         if (url.contains("localhost") || url.contains("127.0.0.1")) return null;
         return url;
+    }
+
+    private BusinessException traduzirErroPagamento(MPApiException e, String metodo) {
+        String body = e.getApiResponse() != null ? e.getApiResponse().getContent() : "";
+        log.error("Erro MP ao criar {}: status={} body={}", metodo, e.getStatusCode(), body);
+        if (body.contains("2067") || body.contains("Invalid user identification")) {
+            return new BusinessException("CPF inválido. Verifique o CPF informado e tente novamente.");
+        }
+        return new BusinessException("Erro ao processar " + metodo + " [" + e.getStatusCode() + "]: " + body);
     }
 
     private String primeiroNome(String nome) {
