@@ -6,6 +6,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +19,9 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+
+    @Value("${primordi.email.frontend-url}")
+    private String frontendUrl;
 
     @PostMapping("/register")
     @Operation(summary = "Cadastra novo cliente")
@@ -46,10 +52,18 @@ public class AuthController {
     }
 
     @GetMapping("/verificar-email")
-    @Operation(summary = "Confirma o e-mail do cliente via token")
+    @Operation(summary = "Confirma o e-mail do cliente via token e redireciona para o frontend")
     public ResponseEntity<Void> verificarEmail(@RequestParam String token) {
-        authService.verificarEmail(token);
-        return ResponseEntity.ok().build();
+        String destino;
+        try {
+            authService.verificarEmail(token);
+            destino = frontendUrl + "/verificar-email?status=ok";
+        } catch (Exception e) {
+            destino = frontendUrl + "/verificar-email?status=erro&message=" + java.net.URLEncoder.encode(e.getMessage(), java.nio.charset.StandardCharsets.UTF_8);
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.LOCATION, destino);
+        return ResponseEntity.status(HttpStatus.FOUND).headers(headers).build();
     }
 
     @PostMapping("/reenviar-verificacao")

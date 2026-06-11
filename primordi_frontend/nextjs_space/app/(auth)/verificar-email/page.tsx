@@ -1,38 +1,14 @@
 import Link from 'next/link';
 import { CheckCircle, XCircle } from 'lucide-react';
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://primordi-production.up.railway.app')
-    .replace(/\s+/g, '').replace(/\/+$/, '');
-
-async function verificarToken(token: string): Promise<{ ok: boolean; message?: string }> {
-    try {
-        const res = await fetch(`${API_BASE}/api/auth/verificar-email?token=${token}`, {
-            cache: 'no-store',
-        });
-        if (res.ok) return { ok: true };
-        const body = await res.json().catch(() => ({}));
-        return { ok: false, message: body?.message ?? 'Link inválido ou expirado.' };
-    } catch {
-        return { ok: false, message: 'Erro de conexão. Tente novamente.' };
-    }
-}
-
-export default async function VerificarEmailPage({
+export default function VerificarEmailPage({
     searchParams,
 }: {
-    searchParams: { token?: string };
+    searchParams: { status?: string; message?: string };
 }) {
-    const token = searchParams?.token;
+    const ok = searchParams?.status === 'ok';
+    const message = searchParams?.message ?? 'Link inválido ou expirado.';
 
-    if (!token) {
-        return <Resultado ok={false} message="Link inválido." />;
-    }
-
-    const result = await verificarToken(token);
-    return <Resultado ok={result.ok} message={result.message} />;
-}
-
-function Resultado({ ok, message }: { ok: boolean; message?: string }) {
     return (
         <div className="min-h-screen flex items-center justify-center bg-background px-4">
             <div className="w-full max-w-[400px] text-center bg-card p-8 rounded-xl" style={{ boxShadow: 'var(--shadow-md)' }}>
@@ -51,7 +27,7 @@ function Resultado({ ok, message }: { ok: boolean; message?: string }) {
                     <>
                         <XCircle className="w-12 h-12 mx-auto mb-4 text-destructive" />
                         <h2 className="text-xl font-semibold mb-2">Link inválido ou expirado</h2>
-                        <p className="text-muted-foreground mb-6">{message}</p>
+                        <p className="text-muted-foreground mb-6">{decodeURIComponent(message)}</p>
                         <Link href="/registro" className="inline-block bg-primary text-primary-foreground px-6 py-2.5 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">
                             Criar nova conta
                         </Link>
