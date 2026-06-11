@@ -24,7 +24,7 @@ function VerificarEmailContent() {
     useEffect(() => {
         if (!token) { setStatus('error'); setMensagem('Link inválido.'); return; }
 
-        fetch(`${API_BASE}/api/auth/verificar-email?token=${encodeURIComponent(token)}`)
+        fetch(`${API_BASE}/api/auth/verificar-email?token=${token}`)
             .then(async (res) => {
                 if (res.ok) { setStatus('success'); return; }
                 const body = await res.json().catch(() => ({}));
