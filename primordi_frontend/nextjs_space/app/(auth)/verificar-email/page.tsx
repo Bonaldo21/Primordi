@@ -20,9 +20,9 @@ async function verificarToken(token: string): Promise<{ ok: boolean; message?: s
 export default async function VerificarEmailPage({
     searchParams,
 }: {
-    searchParams: Promise<{ token?: string }>;
+    searchParams: { token?: string };
 }) {
-    const { token } = await searchParams;
+    const token = searchParams?.token;
 
     if (!token) {
         return <Resultado ok={false} message="Link inválido." />;
