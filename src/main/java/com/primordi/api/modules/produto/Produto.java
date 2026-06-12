@@ -116,13 +116,11 @@ public class Produto {
     // ===== Métodos de domínio =====
 
     /**
-     * Preço efetivo: precoLive (quando em live) > precoPromocional > preco.
+     * Preço efetivo base: precoPromocional > preco.
+     * precoLive é aplicado apenas via serviço quando a live estiver ativa.
      */
     @Transient
     public BigDecimal getPrecoEfetivo() {
-        if (precoLive != null && precoLive.compareTo(BigDecimal.ZERO) > 0) {
-            return precoLive;
-        }
         if (precoPromocional != null && precoPromocional.compareTo(BigDecimal.ZERO) > 0) {
             return precoPromocional;
         }

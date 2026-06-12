@@ -2,6 +2,7 @@ package com.primordi.api.modules.produto;
 
 import com.primordi.api.modules.categoria.Categoria;
 import com.primordi.api.modules.categoria.CategoriaRepository;
+import com.primordi.api.modules.config.ConfiguracaoService;
 import com.primordi.api.modules.live.LiveEvent;
 import com.primordi.api.modules.live.LiveEventService;
 import com.primordi.api.modules.live.LiveEventType;
@@ -29,14 +30,20 @@ public class ProdutoService {
     private final CategoriaRepository categoriaRepository;
     private final LiveEventService liveEventService;
     private final PedidoItemRepository pedidoItemRepository;
+    private final ConfiguracaoService configuracaoService;
 
     // ========== LISTAGEM ==========
+
+    private boolean liveAtiva() {
+        return "true".equals(configuracaoService.obterValor("live.ativa"));
+    }
 
     @Transactional(readOnly = true)
     public Page<ProdutoResumoResponse> listar(
             Long categoriaId, Boolean apenasAtivos, Boolean apenasDestaque,
             String busca, Pageable pageable) {
 
+        boolean ativa = liveAtiva();
         return produtoRepository.buscarComFiltros(
                         categoriaId,
                         apenasAtivos != null && apenasAtivos,
@@ -44,14 +51,14 @@ public class ProdutoService {
                         (busca == null || busca.isBlank()) ? null : busca.trim(),
                         pageable
                 )
-                .map(ProdutoResumoResponse::from);
+                .map(p -> ProdutoResumoResponse.fromComLive(p, ativa));
     }
 
     @Transactional(readOnly = true)
     public ProdutoResponse buscarPorId(Long id) {
         Produto produto = produtoRepository.findByIdComDetalhes(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto", id));
-        return ProdutoResponse.from(produto);
+        return ProdutoResponse.fromComLive(produto, liveAtiva());
     }
 
     @Transactional(readOnly = true)
@@ -59,7 +66,7 @@ public class ProdutoService {
         Produto produto = produtoRepository.findBySlugComDetalhes(slug)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Produto com slug '" + slug + "' não encontrado"));
-        return ProdutoResponse.from(produto);
+        return ProdutoResponse.fromComLive(produto, liveAtiva());
     }
 
     // ========== CRIAÇÃO ==========

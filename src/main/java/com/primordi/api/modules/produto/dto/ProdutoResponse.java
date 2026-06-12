@@ -35,6 +35,19 @@ public record ProdutoResponse(
         LocalDateTime atualizadoEm
 ) {
     public static ProdutoResponse from(Produto p) {
+        return fromComLive(p, false);
+    }
+
+    public static ProdutoResponse fromComLive(Produto p, boolean liveAtiva) {
+        java.math.BigDecimal precoEfetivo = p.getPrecoEfetivo();
+        if (liveAtiva && Boolean.TRUE.equals(p.getDaLive())
+                && p.getPrecoLive() != null && p.getPrecoLive().compareTo(java.math.BigDecimal.ZERO) > 0) {
+            precoEfetivo = p.getPrecoLive();
+        }
+        java.math.BigDecimal precoPixBoleto = precoEfetivo
+                .multiply(new java.math.BigDecimal("0.90"))
+                .setScale(2, java.math.RoundingMode.HALF_UP);
+
         return new ProdutoResponse(
                 p.getId(),
                 p.getCategoria().getId(),
@@ -48,8 +61,8 @@ public record ProdutoResponse(
                 p.getCor(),
                 p.getPreco(),
                 p.getPrecoPromocional(),
-                p.getPrecoEfetivo(),
-                p.getPrecoPixBoleto(),
+                precoEfetivo,
+                precoPixBoleto,
                 p.getPesoKg(),
                 p.getLarguraCm(),
                 p.getAlturaCm(),

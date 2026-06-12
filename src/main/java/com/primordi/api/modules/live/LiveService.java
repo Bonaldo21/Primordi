@@ -28,7 +28,7 @@ public class LiveService {
         boolean ativa = "true".equals(configuracaoService.obterValor("live.ativa"));
         String titulo = configuracaoService.obterValor("live.titulo");
         List<ProdutoResumoResponse> produtos = produtoRepository.buscarProdutosDaLive()
-                .stream().map(ProdutoResumoResponse::from).toList();
+                .stream().map(p -> ProdutoResumoResponse.fromComLive(p, ativa)).toList();
 
         return new LiveStatusResponse(ativa, titulo, liveEventService.totalConectados(), produtos);
     }
