@@ -52,6 +52,12 @@ export default function ProdutoPage() {
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
           <div><p className="text-xs text-primary uppercase tracking-[0.2em] mb-1">{produto?.categoria?.nome ?? ''}</p><h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight">{produto?.nome ?? ''}</h1></div>
           <div className="space-y-1">
+            {hasPromo && (
+              <div className="flex items-center gap-2">
+                <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded">PROMOÇÃO</span>
+                <span className="text-base text-muted-foreground line-through">{formatCurrency(produto?.preco)}</span>
+              </div>
+            )}
             <div className="flex items-center gap-3">
               <span className="text-2xl font-semibold text-green-600">{formatCurrency(produto?.precoPixBoleto ?? produto?.precoEfetivo * 0.9)}</span>
               <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded">10% OFF</span>

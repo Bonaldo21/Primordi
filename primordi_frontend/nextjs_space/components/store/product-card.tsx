@@ -31,8 +31,8 @@ export function ProductCard({ produto, index = 0 }: ProductCardProps) {
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />
           {hasPromo && (
-            <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded">
-              Promoção
+            <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+              PROMOÇÃO
             </span>
           )}
         </div>
@@ -40,6 +40,9 @@ export function ProductCard({ produto, index = 0 }: ProductCardProps) {
           <p className="text-xs text-muted-foreground uppercase tracking-wider">{produto?.categoria?.nome ?? ''}</p>
           <h3 className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{produto?.nome ?? ''}</h3>
           <div className="space-y-0.5">
+            {hasPromo && (
+              <p className="text-xs text-muted-foreground line-through">{formatCurrency(produto?.preco)}</p>
+            )}
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-muted-foreground">À vista</span>
               <span className="text-sm font-semibold text-green-600">{formatCurrency(produto?.precoPixBoleto ?? produto?.precoEfetivo * 0.9)}</span>
