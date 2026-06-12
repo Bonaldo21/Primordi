@@ -40,34 +40,34 @@ public class AuthService {
     @Value("${primordi.email.verificacao-expiracao-horas:24}")
     private int expiracaoHoras;
 
-    // Rate limiting: máx 5 tentativas falhas por IP em 15 minutos
+    // Rate limiting: máx 5 tentativas falhas por e-mail em 15 minutos
     private static final int MAX_TENTATIVAS = 5;
     private static final long JANELA_MS = 15 * 60 * 1000L;
 
     private record Tentativas(AtomicInteger count, Instant inicio) {}
     private final ConcurrentHashMap<String, Tentativas> loginAttempts = new ConcurrentHashMap<>();
 
-    private void verificarRateLimit(String ip) {
+    private void verificarRateLimit(String email) {
         loginAttempts.entrySet().removeIf(e ->
                 Instant.now().toEpochMilli() - e.getValue().inicio().toEpochMilli() > JANELA_MS);
 
-        Tentativas t = loginAttempts.get(ip);
+        Tentativas t = loginAttempts.get(email);
         if (t != null && t.count().get() >= MAX_TENTATIVAS) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
                     "Muitas tentativas de login. Aguarde 15 minutos.");
         }
     }
 
-    private void registrarFalha(String ip) {
-        loginAttempts.compute(ip, (k, v) -> {
+    private void registrarFalha(String email) {
+        loginAttempts.compute(email, (k, v) -> {
             if (v == null) return new Tentativas(new AtomicInteger(1), Instant.now());
             v.count().incrementAndGet();
             return v;
         });
     }
 
-    private void limparTentativas(String ip) {
-        loginAttempts.remove(ip);
+    private void limparTentativas(String email) {
+        loginAttempts.remove(email);
     }
 
     public AuthResponse register(RegisterRequest request) {
@@ -121,20 +121,18 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request, String ip) {
-        verificarRateLimit(ip);
+        String email = request.email().toLowerCase().trim();
+        verificarRateLimit(email);
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            request.email().toLowerCase().trim(),
-                            request.senha()
-                    )
+                    new UsernamePasswordAuthenticationToken(email, request.senha())
             );
         } catch (BadCredentialsException e) {
-            registrarFalha(ip);
+            registrarFalha(email);
             throw new BusinessException("E-mail ou senha inválidos");
         }
 
-        limparTentativas(ip);
+        limparTentativas(email);
         Cliente cliente = clienteRepository.findByEmail(request.email().toLowerCase().trim())
                 .orElseThrow(() -> new BusinessException("Usuário não encontrado"));
 
