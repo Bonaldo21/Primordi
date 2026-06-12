@@ -38,6 +38,7 @@ export default function CheckoutPage() {
     const [submitting, setSubmitting] = useState(false);
     const [mpReady, setMpReady] = useState(false);
     const [cpfInput, setCpfInput] = useState('');
+    const [cardBrickKey, setCardBrickKey] = useState(0);
 
     const [opcoesFretes, setOpcoesFretes] = useState<FreteOpcao[]>([]);
     const [freteSelecionado, setFreteSelecionado] = useState<FreteOpcao | null>(null);
@@ -149,6 +150,7 @@ export default function CheckoutPage() {
     };
 
     const handleMetodoChange = (m: MetodoPagamento) => {
+        if (m === 'CARTAO_CREDITO') setCardBrickKey(k => k + 1);
         setMetodo(m);
         setPedidoId(null);
     };
@@ -418,10 +420,11 @@ export default function CheckoutPage() {
                                 <div>
                                     {mpReady ? (
                                         <CardPayment
+                                            key={cardBrickKey}
                                             initialization={{ amount: totalComFrete }}
                                             onSubmit={async (formData) => { await handlePagar(formData); }}
                                             onError={(err) => { toast.error('Erro no cartão: ' + err?.message); }}
-                                            customization={{ paymentMethods: { minInstallments: 1, maxInstallments: 12 } }}
+                                            customization={{ paymentMethods: { minInstallments: 1, maxInstallments: 3 } }}
                                         />
                                     ) : (
                                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
