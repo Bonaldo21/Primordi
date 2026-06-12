@@ -57,8 +57,9 @@ export default function CheckoutPage() {
     const cpfResolvido = (user?.cpf ?? '').replace(/\D/g, '') || cpfInput.replace(/\D/g, '');
     const precisaDigitarCpf = !(user?.cpf ?? '').replace(/\D/g, '');
 
-    const totalCartao = Number(subtotal ?? 0) + (modoEntrega === 'entrega' ? Number(freteSelecionado?.valor ?? 0) : 0);
-    const totalPixBoleto = parseFloat((totalCartao * 0.90).toFixed(2));
+    const frete = modoEntrega === 'entrega' ? Number(freteSelecionado?.valor ?? 0) : 0;
+    const totalCartao = Number(subtotal ?? 0) + frete;
+    const totalPixBoleto = parseFloat((Number(subtotal ?? 0) * 0.90 + frete).toFixed(2));
     const totalComFrete = metodo === 'CARTAO_CREDITO' ? totalCartao : totalPixBoleto;
 
     useEffect(() => {
@@ -479,7 +480,7 @@ export default function CheckoutPage() {
                                         : calculandoFrete
                                             ? 'Calculando...'
                                             : freteSelecionado
-                                                ? formatCurrency(freteSelecionado.valor)
+                                                ? formatCurrency(frete)
                                                 : step === 1 ? 'Selecione o endereço' : 'A calcular'}
                                 </span>
                             </div>
