@@ -113,13 +113,10 @@ public class Produto {
     // ===== Métodos de domínio =====
 
     /**
-     * Preço à vista efetivo: usa precoAVista se definido, senão precoPromocional, senão preco.
+     * Preço efetivo no cartão (preço base cadastrado pelo admin).
      */
     @Transient
     public BigDecimal getPrecoEfetivo() {
-        if (precoAVista != null && precoAVista.compareTo(BigDecimal.ZERO) > 0) {
-            return precoAVista;
-        }
         if (precoPromocional != null && precoPromocional.compareTo(BigDecimal.ZERO) > 0) {
             return precoPromocional;
         }
@@ -127,11 +124,11 @@ public class Produto {
     }
 
     /**
-     * Preço no cartão = preço à vista + 6%.
+     * Preço à vista (PIX/Boleto) = preço no cartão com 10% de desconto.
      */
     @Transient
-    public BigDecimal getPrecoCartao() {
-        return getPrecoEfetivo().multiply(new BigDecimal("1.06")).setScale(2, java.math.RoundingMode.HALF_UP);
+    public BigDecimal getPrecoPixBoleto() {
+        return getPrecoEfetivo().multiply(new BigDecimal("0.90")).setScale(2, java.math.RoundingMode.HALF_UP);
     }
 
     /**

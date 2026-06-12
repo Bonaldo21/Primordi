@@ -48,7 +48,7 @@ public class PagamentoService {
     // CRIAR PAGAMENTO
     // =====================================================
 
-    private static final java.math.BigDecimal ACRESCIMO_CARTAO = new java.math.BigDecimal("1.06");
+    private static final java.math.BigDecimal DESCONTO_PIX_BOLETO = new java.math.BigDecimal("0.90");
 
     @Transactional
     public PagamentoResponse criarPagamento(CriarPagamentoRequest dto, Cliente cliente) {
@@ -72,8 +72,8 @@ public class PagamentoService {
 
     private java.math.BigDecimal totalParaMetodo(Pedido pedido, MetodoPagamento metodo) {
         java.math.BigDecimal total = pedido.getTotal();
-        if (metodo == MetodoPagamento.CARTAO_CREDITO || metodo == MetodoPagamento.CARTAO_DEBITO) {
-            return total.multiply(ACRESCIMO_CARTAO).setScale(2, java.math.RoundingMode.HALF_UP);
+        if (metodo == MetodoPagamento.PIX || metodo == MetodoPagamento.BOLETO) {
+            return total.multiply(DESCONTO_PIX_BOLETO).setScale(2, java.math.RoundingMode.HALF_UP);
         }
         return total;
     }
