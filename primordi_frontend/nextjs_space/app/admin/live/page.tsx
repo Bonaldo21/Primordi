@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Radio, Power, PowerOff, Plus, Minus } from 'lucide-react';
+import { Radio, Power, PowerOff, Plus, Minus, Tag, Check, X } from 'lucide-react';
 import { liveApi, produtosApi } from '@/lib/api';
 import { getProdutoImagem, formatCurrency } from '@/lib/format';
 import type { Produto } from '@/lib/types';
@@ -14,6 +14,8 @@ export default function AdminLivePage() {
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
   const [titulo, setTitulo] = useState('');
+  const [editandoPreco, setEditandoPreco] = useState<number | null>(null);
+  const [precoInput, setPrecoInput] = useState('');
 
   useEffect(() => { load(); }, []);
 
@@ -48,6 +50,24 @@ export default function AdminLivePage() {
       toast.error(err?.message ?? 'Erro ao alterar live');
     } finally {
       setToggling(false);
+    }
+  }
+
+  async function salvarPrecoLive(produtoId: number) {
+    const preco = precoInput.trim() === '' ? null : parseFloat(precoInput.replace(',', '.'));
+    if (preco !== null && (isNaN(preco) || preco <= 0)) {
+      toast.error('Informe um valor válido');
+      return;
+    }
+    try {
+      await liveApi.setPrecoLive(produtoId, preco);
+      setTodos((prev) =>
+        prev.map((p) => p.id === produtoId ? { ...p, precoLive: preco } as any : p)
+      );
+      setEditandoPreco(null);
+      toast.success(preco ? `Preço live definido: ${formatCurrency(preco)}` : 'Preço live removido');
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erro ao salvar preço');
     }
   }
 
@@ -138,11 +158,46 @@ export default function AdminLivePage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium line-clamp-1">{p.nome}</p>
-                    <p className="text-xs text-muted-foreground">{formatCurrency(p.precoEfetivo ?? p.preco)}</p>
+                    {editandoPreco === p.id ? (
+                      <div className="flex items-center gap-1 mt-1">
+                        <span className="text-xs text-muted-foreground">R$</span>
+                        <input
+                          autoFocus
+                          type="text"
+                          inputMode="decimal"
+                          value={precoInput}
+                          onChange={(e) => setPrecoInput(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') salvarPrecoLive(p.id); if (e.key === 'Escape') setEditandoPreco(null); }}
+                          placeholder={(p as any).precoLive ?? p.precoEfetivo ?? p.preco}
+                          className="w-24 border border-primary rounded px-1.5 py-0.5 text-xs bg-background focus:outline-none"
+                        />
+                        <button onClick={() => salvarPrecoLive(p.id)} className="p-0.5 text-green-600 hover:bg-green-50 rounded"><Check className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => setEditandoPreco(null)} className="p-0.5 text-muted-foreground hover:bg-secondary rounded"><X className="w-3.5 h-3.5" /></button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5">
+                        {(p as any).precoLive ? (
+                          <>
+                            <span className="text-xs font-semibold text-primary">{formatCurrency((p as any).precoLive)}</span>
+                            <span className="text-xs text-muted-foreground line-through">{formatCurrency(p.preco)}</span>
+                            <span className="text-xs bg-primary/10 text-primary px-1 rounded">live</span>
+                          </>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">{formatCurrency(p.precoEfetivo ?? p.preco)}</span>
+                        )}
+                        <button
+                          onClick={() => { setEditandoPreco(p.id); setPrecoInput(''); }}
+                          className="p-0.5 text-muted-foreground hover:text-primary rounded"
+                          title="Editar preço live"
+                        >
+                          <Tag className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <button
                     onClick={() => toggleProduto(p)}
-                    className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
+                    className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors flex-shrink-0"
                     title="Remover da live"
                   >
                     <Minus className="w-4 h-4" />

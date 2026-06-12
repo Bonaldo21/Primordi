@@ -204,6 +204,11 @@ export const liveApi = {
   },
   toggleProduto: (produtoId: number, daLive: boolean) =>
     request<any>(`/live/produtos/${produtoId}?daLive=${daLive}`, { method: 'PATCH' }),
+  setPrecoLive: (produtoId: number, preco: number | null) =>
+    request<any>(`/live/produtos/${produtoId}/preco`, {
+      method: 'PATCH',
+      body: JSON.stringify({ preco }),
+    }),
 };
 
 // Pagamentos
