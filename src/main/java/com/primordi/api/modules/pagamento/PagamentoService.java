@@ -48,6 +48,8 @@ public class PagamentoService {
     // CRIAR PAGAMENTO
     // =====================================================
 
+    private static final java.math.BigDecimal ACRESCIMO_CARTAO = new java.math.BigDecimal("1.06");
+
     @Transactional
     public PagamentoResponse criarPagamento(CriarPagamentoRequest dto, Cliente cliente) {
         Pedido pedido = pedidoRepository.findById(dto.getPedidoId())
@@ -68,6 +70,14 @@ public class PagamentoService {
         };
     }
 
+    private java.math.BigDecimal totalParaMetodo(Pedido pedido, MetodoPagamento metodo) {
+        java.math.BigDecimal total = pedido.getTotal();
+        if (metodo == MetodoPagamento.CARTAO_CREDITO || metodo == MetodoPagamento.CARTAO_DEBITO) {
+            return total.multiply(ACRESCIMO_CARTAO).setScale(2, java.math.RoundingMode.HALF_UP);
+        }
+        return total;
+    }
+
     // =====================================================
     // PIX
     // =====================================================
@@ -75,9 +85,10 @@ public class PagamentoService {
     private PagamentoResponse criarPix(Pedido pedido, CriarPagamentoRequest dto) {
         try {
             PaymentClient client = new PaymentClient();
+            java.math.BigDecimal total = totalParaMetodo(pedido, MetodoPagamento.PIX);
 
             PaymentCreateRequest request = PaymentCreateRequest.builder()
-                    .transactionAmount(pedido.getTotal())
+                    .transactionAmount(total)
                     .description("Pedido " + pedido.getCodigo())
                     .paymentMethodId("pix")
                     .payer(PaymentPayerRequest.builder()
@@ -107,7 +118,7 @@ public class PagamentoService {
                     .pedidoId(pedido.getId())
                     .metodo(MetodoPagamento.PIX)
                     .status(StatusPagamento.fromMercadoPago(payment.getStatus()))
-                    .valor(pedido.getTotal())
+                    .valor(total)
                     .transacaoId(String.valueOf(payment.getId()))
                     .qrCode(qrCode)
                     .qrCodeBase64(qrCodeBase64)
@@ -133,9 +144,10 @@ public class PagamentoService {
         }
         try {
             PaymentClient client = new PaymentClient();
+            java.math.BigDecimal total = totalParaMetodo(pedido, dto.getMetodo());
 
             PaymentCreateRequest request = PaymentCreateRequest.builder()
-                    .transactionAmount(pedido.getTotal())
+                    .transactionAmount(total)
                     .token(dto.getCardToken())
                     .description("Pedido " + pedido.getCodigo())
                     .installments(dto.getParcelas() != null ? dto.getParcelas() : 1)
@@ -153,7 +165,7 @@ public class PagamentoService {
                     .metodo(dto.getMetodo())
                     .status(StatusPagamento.fromMercadoPago(payment.getStatus()))
                     .statusDetalhe(payment.getStatusDetail())
-                    .valor(pedido.getTotal())
+                    .valor(total)
                     .parcelas(dto.getParcelas())
                     .transacaoId(String.valueOf(payment.getId()))
                     .build();
@@ -186,6 +198,7 @@ public class PagamentoService {
 
         try {
             PaymentClient client = new PaymentClient();
+            java.math.BigDecimal total = totalParaMetodo(pedido, MetodoPagamento.BOLETO);
 
             PaymentPayerAddressRequest payerAddress = PaymentPayerAddressRequest.builder()
                     .zipCode(endereco.getCep().replaceAll("\\D", ""))
@@ -197,7 +210,7 @@ public class PagamentoService {
                     .build();
 
             PaymentCreateRequest request = PaymentCreateRequest.builder()
-                    .transactionAmount(pedido.getTotal())
+                    .transactionAmount(total)
                     .description("Pedido " + pedido.getCodigo())
                     .paymentMethodId("bolbradesco")
                     .payer(PaymentPayerRequest.builder()
@@ -219,7 +232,7 @@ public class PagamentoService {
                     .pedidoId(pedido.getId())
                     .metodo(MetodoPagamento.BOLETO)
                     .status(StatusPagamento.fromMercadoPago(payment.getStatus()))
-                    .valor(pedido.getTotal())
+                    .valor(total)
                     .transacaoId(String.valueOf(payment.getId()))
                     .linkBoleto(payment.getTransactionDetails() != null
                             ? payment.getTransactionDetails().getExternalResourceUrl() : null)

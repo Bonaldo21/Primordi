@@ -30,6 +30,9 @@ public record ProdutoUpdateRequest(
         @DecimalMin(value = "0.00")
         BigDecimal precoPromocional,
 
+        @DecimalMin(value = "0.01")
+        BigDecimal precoAVista,
+
         @DecimalMin(value = "0.000")
         BigDecimal pesoKg,
 

@@ -58,6 +58,9 @@ public class Produto {
     @Column(name = "preco_promocional", precision = 10, scale = 2)
     private BigDecimal precoPromocional;
 
+    @Column(name = "preco_a_vista", precision = 10, scale = 2)
+    private BigDecimal precoAVista;
+
     @Column(name = "peso_kg", precision = 6, scale = 3)
     private BigDecimal pesoKg;
 
@@ -110,14 +113,25 @@ public class Produto {
     // ===== Métodos de domínio =====
 
     /**
-     * Retorna o preço efetivo de venda (promocional, se houver; senão, o preço normal).
+     * Preço à vista efetivo: usa precoAVista se definido, senão precoPromocional, senão preco.
      */
     @Transient
     public BigDecimal getPrecoEfetivo() {
+        if (precoAVista != null && precoAVista.compareTo(BigDecimal.ZERO) > 0) {
+            return precoAVista;
+        }
         if (precoPromocional != null && precoPromocional.compareTo(BigDecimal.ZERO) > 0) {
             return precoPromocional;
         }
         return preco;
+    }
+
+    /**
+     * Preço no cartão = preço à vista + 6%.
+     */
+    @Transient
+    public BigDecimal getPrecoCartao() {
+        return getPrecoEfetivo().multiply(new BigDecimal("1.06")).setScale(2, java.math.RoundingMode.HALF_UP);
     }
 
     /**

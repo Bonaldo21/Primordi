@@ -93,6 +93,7 @@ public class ProdutoService {
                 .cor(request.cor())
                 .preco(request.preco())
                 .precoPromocional(request.precoPromocional())
+                .precoAVista(request.precoAVista())
                 .pesoKg(request.pesoKg())
                 .larguraCm(request.larguraCm())
                 .alturaCm(request.alturaCm())
@@ -142,6 +143,7 @@ public class ProdutoService {
         if (request.cor() != null) produto.setCor(request.cor());
         if (request.preco() != null) produto.setPreco(request.preco());
         if (request.precoPromocional() != null) produto.setPrecoPromocional(request.precoPromocional());
+        if (request.precoAVista() != null) produto.setPrecoAVista(request.precoAVista());
         if (request.pesoKg() != null) produto.setPesoKg(request.pesoKg());
         if (request.larguraCm() != null) produto.setLarguraCm(request.larguraCm());
         if (request.alturaCm() != null) produto.setAlturaCm(request.alturaCm());
