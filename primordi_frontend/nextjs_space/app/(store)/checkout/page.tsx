@@ -298,7 +298,7 @@ export default function CheckoutPage() {
                                         className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-colors ${modoEntrega === 'entrega' ? 'border-primary bg-primary/5 text-primary' : 'border-border hover:border-primary/50'}`}>
                                     <Truck className="w-4 h-4" /> Receber em casa
                                 </button>
-                                <button onClick={() => setModoEntrega('retirada')}
+                                <button onClick={() => { setModoEntrega('retirada'); setOpcoesFretes([]); setFreteSelecionado(null); }}
                                         className={`flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-colors ${modoEntrega === 'retirada' ? 'border-primary bg-primary/5 text-primary' : 'border-border hover:border-primary/50'}`}>
                                     <Store className="w-4 h-4" /> Retirar na loja
                                 </button>
