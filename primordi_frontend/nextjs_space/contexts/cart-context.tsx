@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { CartItem, Produto } from '@/lib/types';
+import { produtosApi } from '@/lib/api';
 
 interface CartContextType {
   items: CartItem[];
@@ -35,8 +36,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setItems(loadCart());
+    const stored = loadCart();
+    setItems(stored);
     setMounted(true);
+
+    if (stored.length === 0) return;
+    Promise.all(
+      stored.map((item: CartItem) =>
+        produtosApi.getById(item.produto.id).catch(() => null)
+      )
+    ).then((atualizados) => {
+      setItems((prev: CartItem[]) =>
+        prev.map((item: CartItem) => {
+          const fresco = atualizados.find((p) => p?.id === item.produto.id);
+          return fresco ? { ...item, produto: fresco } : item;
+        })
+      );
+    });
   }, []);
 
   useEffect(() => {
