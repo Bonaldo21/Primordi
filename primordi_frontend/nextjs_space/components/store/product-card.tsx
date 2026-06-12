@@ -39,15 +39,15 @@ export function ProductCard({ produto, index = 0 }: ProductCardProps) {
         <div className="space-y-1">
           <p className="text-xs text-muted-foreground uppercase tracking-wider">{produto?.categoria?.nome ?? ''}</p>
           <h3 className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{produto?.nome ?? ''}</h3>
-          <div className="flex items-center gap-2">
-            {hasPromo ? (
-              <>
-                <span className="text-sm font-semibold text-primary">{formatCurrency(produto?.precoPromocional)}</span>
-                <span className="text-xs text-muted-foreground line-through">{formatCurrency(produto?.preco)}</span>
-              </>
-            ) : (
-              <span className="text-sm font-semibold text-foreground">{formatCurrency(produto?.preco)}</span>
-            )}
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted-foreground">À vista</span>
+              <span className="text-sm font-semibold text-green-600">{formatCurrency(produto?.precoPixBoleto ?? produto?.precoEfetivo * 0.9)}</span>
+              <span className="text-xs bg-green-100 text-green-700 px-1 rounded font-medium">-10%</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              No cartão: {formatCurrency(produto?.precoEfetivo)}
+            </p>
           </div>
         </div>
       </Link>

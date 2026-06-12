@@ -51,7 +51,14 @@ export default function ProdutoPage() {
         </motion.div>
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
           <div><p className="text-xs text-primary uppercase tracking-[0.2em] mb-1">{produto?.categoria?.nome ?? ''}</p><h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight">{produto?.nome ?? ''}</h1></div>
-          <div className="flex items-baseline gap-3">{hasPromo ? (<><span className="text-2xl font-semibold text-primary">{formatCurrency(produto?.precoPromocional)}</span><span className="text-lg text-muted-foreground line-through">{formatCurrency(produto?.preco)}</span></>) : (<span className="text-2xl font-semibold">{formatCurrency(produto?.preco)}</span>)}</div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl font-semibold text-green-600">{formatCurrency(produto?.precoPixBoleto ?? produto?.precoEfetivo * 0.9)}</span>
+              <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded">10% OFF</span>
+            </div>
+            <p className="text-sm text-muted-foreground">à vista no PIX ou Boleto</p>
+            <p className="text-sm text-muted-foreground">No cartão: <span className="font-medium text-foreground">{formatCurrency(produto?.precoEfetivo)}</span> em até 3×</p>
+          </div>
           <p className="text-muted-foreground leading-relaxed">{produto?.descricao ?? ''}</p>
           <div className="flex flex-wrap gap-4 text-sm">{produto?.tipoCouro && <div><span className="text-muted-foreground">Couro:</span> <span className="font-medium">{produto.tipoCouro}</span></div>}{produto?.cor && <div><span className="text-muted-foreground">Cor:</span> <span className="font-medium">{produto.cor}</span></div>}</div>
           <div className="flex items-center gap-4">

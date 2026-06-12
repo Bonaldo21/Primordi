@@ -45,6 +45,7 @@ export interface Produto {
   preco: number;
   precoPromocional: number | null;
   precoEfetivo: number;
+  precoPixBoleto: number;
   largura: number | null;
   altura: number | null;
   profundidade: number | null;
