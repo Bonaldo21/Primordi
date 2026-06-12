@@ -61,6 +61,9 @@ public class Produto {
     @Column(name = "preco_a_vista", precision = 10, scale = 2)
     private BigDecimal precoAVista;
 
+    @Column(name = "preco_live", precision = 10, scale = 2)
+    private BigDecimal precoLive;
+
     @Column(name = "peso_kg", precision = 6, scale = 3)
     private BigDecimal pesoKg;
 
@@ -113,10 +116,13 @@ public class Produto {
     // ===== Métodos de domínio =====
 
     /**
-     * Preço efetivo no cartão (preço base cadastrado pelo admin).
+     * Preço efetivo: precoLive (quando em live) > precoPromocional > preco.
      */
     @Transient
     public BigDecimal getPrecoEfetivo() {
+        if (precoLive != null && precoLive.compareTo(BigDecimal.ZERO) > 0) {
+            return precoLive;
+        }
         if (precoPromocional != null && precoPromocional.compareTo(BigDecimal.ZERO) > 0) {
             return precoPromocional;
         }

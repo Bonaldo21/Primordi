@@ -9,6 +9,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.math.BigDecimal;
+
 @RestController
 @RequestMapping("/live")
 @RequiredArgsConstructor
@@ -48,5 +50,17 @@ public class LiveController {
             @PathVariable Long produtoId,
             @RequestParam boolean daLive) {
         return ResponseEntity.ok(liveService.toggleDaLive(produtoId, daLive));
+    }
+
+    /** Admin — define preço especial só para a live (body: {"preco": 99.90} ou {} para limpar) */
+    @PatchMapping("/produtos/{produtoId}/preco")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProdutoResumoResponse> atualizarPrecoLive(
+            @PathVariable Long produtoId,
+            @RequestBody java.util.Map<String, Object> body) {
+        Object val = body.get("preco");
+        BigDecimal preco = val != null && !val.toString().isBlank()
+                ? new BigDecimal(val.toString()) : null;
+        return ResponseEntity.ok(liveService.atualizarPrecoLive(produtoId, preco));
     }
 }

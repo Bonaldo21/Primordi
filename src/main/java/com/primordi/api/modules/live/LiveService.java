@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -53,11 +54,28 @@ public class LiveService {
         return status();
     }
 
+    /** Admin: define preço especial só para a live (null = restaura preço normal) */
+    public ProdutoResumoResponse atualizarPrecoLive(Long produtoId, BigDecimal precoLive) {
+        Produto produto = produtoRepository.findById(produtoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto", produtoId));
+        produto.setPrecoLive(precoLive);
+        Produto salvo = produtoRepository.save(produto);
+
+        liveEventService.publicar(LiveEvent.builder()
+                .tipo(LiveEventType.PRODUTO_LIVE_ATUALIZADO)
+                .dados(Map.of("produtoId", produtoId, "nome", produto.getNome(),
+                        "precoLive", precoLive != null ? precoLive : ""))
+                .build());
+
+        return ProdutoResumoResponse.from(salvo);
+    }
+
     /** Admin: marca/desmarca produto como "da live" */
     public ProdutoResumoResponse toggleDaLive(Long produtoId, boolean daLive) {
         Produto produto = produtoRepository.findById(produtoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto", produtoId));
         produto.setDaLive(daLive);
+        if (!daLive) produto.setPrecoLive(null); // limpa preço live ao remover
         Produto salvo = produtoRepository.save(produto);
 
         liveEventService.publicar(LiveEvent.builder()
