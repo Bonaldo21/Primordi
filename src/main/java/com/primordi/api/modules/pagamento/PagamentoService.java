@@ -8,6 +8,7 @@ import com.mercadopago.client.payment.PaymentPayerRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
+import com.primordi.api.modules.cliente.Cliente;
 import com.primordi.api.modules.pagamento.config.MercadoPagoProperties;
 import com.primordi.api.modules.pagamento.domain.MetodoPagamento;
 import com.primordi.api.modules.pagamento.domain.Pagamento;
@@ -23,8 +24,16 @@ import com.primordi.api.shared.exception.BusinessException;
 import com.primordi.api.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 @Slf4j
 @Service
@@ -40,9 +49,13 @@ public class PagamentoService {
     // =====================================================
 
     @Transactional
-    public PagamentoResponse criarPagamento(CriarPagamentoRequest dto) {
+    public PagamentoResponse criarPagamento(CriarPagamentoRequest dto, Cliente cliente) {
         Pedido pedido = pedidoRepository.findById(dto.getPedidoId())
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido", dto.getPedidoId()));
+
+        if (!pedido.getCliente().getId().equals(cliente.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado a este pedido.");
+        }
 
         if (pagamentoRepository.existsByPedidoIdAndStatus(pedido.getId(), StatusPagamento.APROVADO)) {
             throw new BusinessException("Este pedido já possui pagamento aprovado.");
@@ -227,7 +240,8 @@ public class PagamentoService {
     // =====================================================
 
     @Transactional
-    public void processarWebhook(WebhookMercadoPagoRequest webhook) {
+    public void processarWebhook(WebhookMercadoPagoRequest webhook, String xSignature, String xRequestId) {
+        validarAssinaturaWebhook(xSignature, xRequestId, webhook);
         if (!"payment".equals(webhook.getType())) return;
 
         String transacaoId = String.valueOf(webhook.getData() != null ? webhook.getData().getId() : null);
@@ -258,7 +272,14 @@ public class PagamentoService {
     // CONSULTA
     // =====================================================
 
-    public PagamentoResponse consultarPorPedido(Long pedidoId) {
+    public PagamentoResponse consultarPorPedido(Long pedidoId, Cliente cliente) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido", pedidoId));
+
+        if (!pedido.getCliente().getId().equals(cliente.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado a este pedido.");
+        }
+
         return pagamentoRepository
                 .findByPedidoIdOrderByCriadoEmDesc(pedidoId)
                 .stream().findFirst()
@@ -298,6 +319,53 @@ public class PagamentoService {
             return new BusinessException("CPF inválido. Verifique o CPF informado e tente novamente.");
         }
         return new BusinessException("Erro ao processar " + metodo + " [" + e.getStatusCode() + "]: " + body);
+    }
+
+    /**
+     * Valida o header x-signature enviado pelo Mercado Pago.
+     * Formato: ts=<timestamp>,v1=<hmac-sha256>
+     * O MP assina: "id:<dataId>;request-id:<xRequestId>;ts:<ts>;"
+     */
+    private void validarAssinaturaWebhook(String xSignature, String xRequestId, WebhookMercadoPagoRequest webhook) {
+        String secret = mpProperties.getWebhookSecret();
+        if (secret == null || secret.isBlank()) {
+            log.warn("WEBHOOK_SECRET não configurado — validação de assinatura ignorada");
+            return;
+        }
+        if (xSignature == null || xSignature.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Assinatura do webhook ausente.");
+        }
+
+        String ts = null;
+        String v1 = null;
+        for (String part : xSignature.split(",")) {
+            String[] kv = part.trim().split("=", 2);
+            if (kv.length == 2) {
+                if ("ts".equals(kv[0])) ts = kv[1];
+                else if ("v1".equals(kv[0])) v1 = kv[1];
+            }
+        }
+
+        if (ts == null || v1 == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Formato de assinatura inválido.");
+        }
+
+        String dataId = webhook.getData() != null ? webhook.getData().getId() : "";
+        String manifest = "id:" + dataId + ";request-id:" + (xRequestId != null ? xRequestId : "") + ";ts:" + ts + ";";
+
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            byte[] hash = mac.doFinal(manifest.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder();
+            for (byte b : hash) hex.append(String.format("%02x", b));
+            if (!hex.toString().equals(v1)) {
+                log.warn("Assinatura de webhook inválida. manifest={}", manifest);
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Assinatura do webhook inválida.");
+            }
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new RuntimeException("Erro ao validar assinatura do webhook", e);
+        }
     }
 
     private String primeiroNome(String nome) {

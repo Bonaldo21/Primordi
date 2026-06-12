@@ -86,7 +86,7 @@ public class PedidoService {
                 .status(StatusPedido.AGUARDANDO_PAGAMENTO)
                 .cupomCodigo(dto.cupomCodigo())
                 .observacoes(dto.observacoes())
-                .valorFrete(retirada ? BigDecimal.ZERO : (dto.valorFrete() != null ? dto.valorFrete() : BigDecimal.ZERO))
+                .valorFrete(BigDecimal.ZERO) // frete definido pelo admin ao confirmar envio, nunca pelo cliente
                 .desconto(BigDecimal.ZERO)
                 .build();
 

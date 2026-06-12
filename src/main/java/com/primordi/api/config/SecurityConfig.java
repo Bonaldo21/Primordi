@@ -51,7 +51,7 @@ public class SecurityConfig {
 
                         // ===== ROTAS PÚBLICAS =====
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").hasRole("ADMIN")
 
                         // Vitrine e catálogo públicos (cliente vê produtos sem login)
                         .requestMatchers(HttpMethod.GET, "/produtos", "/produtos/vitrine", "/produtos/destaques").permitAll()

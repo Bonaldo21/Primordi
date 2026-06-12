@@ -27,6 +27,8 @@ public class FileStorageService {
         ));
     }
 
+    private static final long MAX_TAMANHO_BYTES = 5 * 1024 * 1024L; // 5 MB
+
     public String salvarImagem(MultipartFile arquivo) {
         if (arquivo == null || arquivo.isEmpty()) {
             throw new BusinessException("Arquivo de imagem é obrigatório");
@@ -35,6 +37,10 @@ public class FileStorageService {
         String contentType = arquivo.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new BusinessException("Somente arquivos de imagem são permitidos");
+        }
+
+        if (arquivo.getSize() > MAX_TAMANHO_BYTES) {
+            throw new BusinessException("Imagem deve ter no máximo 5 MB");
         }
 
         try {

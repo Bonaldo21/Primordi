@@ -153,6 +153,7 @@ public class AuthService {
     public void esqueciSenha(String email) {
         // Sempre retorna sucesso para não revelar se o e-mail existe
         clienteRepository.findByEmail(email.toLowerCase().trim()).ifPresent(cliente -> {
+            resetTokenRepository.invalidarTokensDoCliente(cliente.getId());
             String token = UUID.randomUUID().toString();
             resetTokenRepository.save(TokenResetSenha.builder()
                     .token(token)

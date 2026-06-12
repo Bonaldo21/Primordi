@@ -3,7 +3,6 @@ package com.primordi.api.modules.pedido.dto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 public record PedidoRequest(
@@ -19,8 +18,6 @@ public record PedidoRequest(
         List<PedidoItemRequest> itens,
 
         String cupomCodigo,
-
-        BigDecimal valorFrete,
 
         String observacoes
 ) {}
