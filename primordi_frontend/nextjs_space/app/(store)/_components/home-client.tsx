@@ -47,7 +47,6 @@ export function HomeClient() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60" />
         </div>
         <div className="relative z-10 text-center px-4 max-w-[800px] mx-auto">
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-white/80 text-sm uppercase tracking-[0.3em] mb-4">Couro Artesanal</motion.p>
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="font-display text-4xl sm:text-5xl md:text-6xl font-semibold text-white tracking-tight mb-6">Há 72 anos,<br />fabricando acessórios <br/>em couro legítimo</motion.h1>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}>
             <Link href="/catalogo" className="inline-flex items-center gap-2 bg-white text-foreground px-6 py-3 text-sm font-medium tracking-wide hover:bg-white/90 transition-colors rounded">Explorar Coleção <ArrowRight className="w-4 h-4" /></Link>
