@@ -57,9 +57,9 @@ export default function CheckoutPage() {
     const cpfResolvido = (user?.cpf ?? '').replace(/\D/g, '') || cpfInput.replace(/\D/g, '');
     const precisaDigitarCpf = !(user?.cpf ?? '').replace(/\D/g, '');
 
-    const totalAVista = Number(subtotal ?? 0) + (modoEntrega === 'entrega' ? Number(freteSelecionado?.valor ?? 0) : 0);
-    const totalCartao = parseFloat((totalAVista * 1.06).toFixed(2));
-    const totalComFrete = metodo === 'CARTAO_CREDITO' ? totalCartao : totalAVista;
+    const totalCartao = Number(subtotal ?? 0) + (modoEntrega === 'entrega' ? Number(freteSelecionado?.valor ?? 0) : 0);
+    const totalPixBoleto = parseFloat((totalCartao * 0.90).toFixed(2));
+    const totalComFrete = metodo === 'CARTAO_CREDITO' ? totalCartao : totalPixBoleto;
 
     useEffect(() => {
         if (!user) return;
@@ -411,8 +411,8 @@ export default function CheckoutPage() {
 
                             {metodo === 'PIX' && (
                                 <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 text-sm text-blue-800 dark:text-blue-300">
-                                    <p className="font-medium mb-1">PIX — pagamento à vista</p>
-                                    <p>Você paga <strong>{formatCurrency(totalAVista)}</strong> à vista. Após confirmar, você receberá um QR Code. A confirmação é instantânea.</p>
+                                    <p className="font-medium mb-1">🎉 10% de desconto no PIX!</p>
+                                    <p>De <s>{formatCurrency(totalCartao)}</s> por <strong>{formatCurrency(totalPixBoleto)}</strong>. Você economiza {formatCurrency(totalCartao - totalPixBoleto)}. Após confirmar, você receberá um QR Code. A confirmação é instantânea.</p>
                                 </div>
                             )}
 
@@ -436,8 +436,8 @@ export default function CheckoutPage() {
 
                             {metodo === 'BOLETO' && (
                                 <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-sm text-yellow-800 dark:text-yellow-300">
-                                    <p className="font-medium mb-1">Boleto — pagamento à vista</p>
-                                    <p>Você paga <strong>{formatCurrency(totalAVista)}</strong> à vista. O boleto vence em 3 dias úteis. A confirmação pode levar até 2 dias úteis.</p>
+                                    <p className="font-medium mb-1">🎉 10% de desconto no Boleto!</p>
+                                    <p>De <s>{formatCurrency(totalCartao)}</s> por <strong>{formatCurrency(totalPixBoleto)}</strong>. Você economiza {formatCurrency(totalCartao - totalPixBoleto)}. O boleto vence em 3 dias úteis. A confirmação pode levar até 2 dias úteis.</p>
                                 </div>
                             )}
 
@@ -483,23 +483,25 @@ export default function CheckoutPage() {
                                                 : step === 1 ? 'Selecione o endereço' : 'A calcular'}
                                 </span>
                             </div>
-                            {step === 2 && metodo === 'CARTAO_CREDITO' && (
-                                <div className="flex justify-between text-muted-foreground text-xs">
-                                    <span>Acréscimo cartão (6%)</span>
-                                    <span>{formatCurrency(totalCartao - totalAVista)}</span>
+                            {step === 2 && metodo !== 'CARTAO_CREDITO' && (
+                                <div className="flex justify-between text-xs text-green-600 font-medium">
+                                    <span>Desconto PIX/Boleto (10%)</span>
+                                    <span>- {formatCurrency(totalCartao - totalPixBoleto)}</span>
                                 </div>
                             )}
                             <div className="border-t border-border pt-2 mt-2 flex justify-between font-semibold">
                                 <span>Total</span>
                                 <div className="text-right">
-                                    <span>{formatCurrency(totalComFrete)}</span>
+                                    {step === 2 && metodo !== 'CARTAO_CREDITO' && (
+                                        <p className="text-xs font-normal line-through text-muted-foreground">{formatCurrency(totalCartao)}</p>
+                                    )}
+                                    <span className={step === 2 && metodo !== 'CARTAO_CREDITO' ? 'text-green-600' : ''}>
+                                        {formatCurrency(totalComFrete)}
+                                    </span>
                                     {step === 2 && metodo === 'CARTAO_CREDITO' && (
                                         <p className="text-xs font-normal text-muted-foreground">
                                             em até 3× de {formatCurrency(totalCartao / 3)}
                                         </p>
-                                    )}
-                                    {step === 2 && metodo !== 'CARTAO_CREDITO' && (
-                                        <p className="text-xs font-normal text-green-600">à vista (PIX/Boleto)</p>
                                     )}
                                 </div>
                             </div>
