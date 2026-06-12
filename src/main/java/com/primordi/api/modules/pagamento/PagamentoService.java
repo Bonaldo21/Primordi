@@ -71,11 +71,13 @@ public class PagamentoService {
     }
 
     private java.math.BigDecimal totalParaMetodo(Pedido pedido, MetodoPagamento metodo) {
-        java.math.BigDecimal total = pedido.getTotal();
         if (metodo == MetodoPagamento.PIX || metodo == MetodoPagamento.BOLETO) {
-            return total.multiply(DESCONTO_PIX_BOLETO).setScale(2, java.math.RoundingMode.HALF_UP);
+            java.math.BigDecimal subtotalComDesconto = pedido.getSubtotal()
+                    .multiply(DESCONTO_PIX_BOLETO)
+                    .setScale(2, java.math.RoundingMode.HALF_UP);
+            return subtotalComDesconto.add(pedido.getValorFrete());
         }
-        return total;
+        return pedido.getTotal();
     }
 
     // =====================================================
